@@ -621,12 +621,21 @@ dictionary XRRenderStateOptions {
 // Frame, Device Pose, and Views
 //
 
+// XRFrame and XRPose are also listed in spatial-tracking-explainer.md
+
 [SecureContext, Exposed=Window] interface XRFrame {
   readonly attribute XRSession session;
 
   // Also listed in the spatial-tracking-explainer.md
   XRViewerPose? getViewerPose(optional XRReferenceSpace referenceSpace);
-  XRInputPose? getInputPose(XRInputSource inputSource, optional XRReferenceSpace referenceSpace);
+  XRPose? getPose(XRSpace space, XRSpace relativeTo);
+};
+
+[SecureContext, Exposed=Window]
+interface XRPose {
+  // TODO: Need for some flags here?
+  // TODO: Room for things like velocity and acceleration in the future
+  readonly attribute XRRigidTransform transform;
 };
 
 enum XREye {
@@ -649,8 +658,7 @@ interface XRRigidTransform {
   readonly attribute XRRigidTransform transform;
 };
 
-[SecureContext, Exposed=Window] interface XRViewerPose {
-  readonly attribute XRRigidTransform transform;
+[SecureContext, Exposed=Window] interface XRViewerPose : XRPose {
   readonly attribute FrozenArray<XRView> views;
 };
 
