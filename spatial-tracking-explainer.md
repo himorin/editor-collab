@@ -177,6 +177,33 @@ function onSessionStarted(session) {
 }
 ```
 
+### Application-supplied transforms
+Frequently developers will want to provide an additional, artificial transform on top of the user's tracked motion to allow the user to navigate larger scenes than their tracking systems or physical space allows. An examples of this would be the common "teleportation" mechanic, where the user selects a point in the virtual scene to "jump" to, after which the selected point is treated as the new origin which all tracked motion is relative to. This effect is traditionally accomplished by mathematically combining the API-provided transform with the desired additional application transforms. It is useful to allow the API do handle it, however, because it ensures that all tracked values are transformed consistently, allowing the user's viewpoint and inputs to stay in sync.
+
+Developers can specify application-specific transforms by setting the `baseTransform` attribute of any `XRReferenceSpace`. When the `transform` is not null, any values queried using the `XRReferenceSpace` will be offset by the `translation` and `orientation` the `baseTransform` describes. The `XRReferenceSpace`'s `baseTransform` can be updated at any time and will immediately take effect, meaning that any new values that are queried with the `XRReferenceSpace` will take into account the new `baseTransform`. Previously queried values will not be altered. Changing the `baseTransform` between pose queries in a single frame is not advised, since it will cause inconsistencies in the tracking data and rendered output.
+
+When interpreting an `XRRigidTransform` the `orientation` is applied prior to the `translation`. This means that, for example, a transform that indicates a quarter rotation to the right and a 1 meter translation along -Z would place a transformed object at `[0, 0, -1]` facing to the right.
+
+The following example demonstrates how to create a `floor-level` reference space to account for a scene where the user is intended to start at a location 2 meters to the right and 3 meters back from the scene's origin.
+
+```js
+let xrSession = null;
+let xrReferenceSpace = null;
+
+function onSessionStarted(session) {
+  xrSession = session;
+  xrSession.requestReferenceSpace({ type:'stationary', subtype:'floor-level' })
+  .then((referenceSpace) => {
+    xrReferenceSpace = referenceSpace;
+    xrReferenceSpace.baseTransform = new XRRigidTransform({ x: 2, z: 3 });
+  })
+  .then(setupWebGLLayer)
+  .then(() => {
+    xrSession.requestAnimationFrame(onDrawFrame);
+  });
+}
+```
+
 ## Practical Usage Guidelines
 
 ### Inline Sessions
@@ -233,7 +260,7 @@ Additionally, XR hardware with orientation-only tracking may also provide an emu
 There are several circumstances in which developers may choose to relate content in different reference spaces.
 
 #### Inline to Immersive
-It is expected that developers will often choose to preview `immersive` experiences with a similar experience `inline`.  In this situation, users often expect to see the scene from the same perspective when they make the transition from `inline` to `immersive`. To accomplish this, developers should grab the `transform` of the last `XRViewerPose` retrieved using the `inline` session's `XRReferenceSpace` and apply this same transform to content to be displayed in the `immersive` session's `XRReferenceSpace`.  The same logic applies in the reverse when exiting `immersive`.
+It is expected that developers will often choose to preview `immersive` experiences with a similar experience `inline`. In this situation, users often expect to see the scene from the same perspective when they make the transition from `inline` to `immersive`. To accomplish this, developers should grab the `transform` of the last `XRViewerPose` retrieved using the `inline` session's `XRReferenceSpace` and set it as the `baseTransform` of the `immersive` session's `XRReferenceSpace`. The same logic applies in the reverse when exiting `immersive`.
 
 #### Unbounded to Bounded 
 When building an experience that is predominantly based on an `XRUnboundedReferenceSpace`, developers may occasionally choose to switch to an `XRBoundedReferenceSpace`.  For example, a whole-home renovation experience might choose to switch to a bounded reference space for reviewing a furniture selection library.  If necessary to continue displaying content belonging to the previous reference space, developers may use the `getTransformTo()` method to re-parent nearby virtual content to the new reference space.
@@ -364,7 +391,9 @@ dictionary XRReferenceSpaceOptions {
   required XRReferenceSpaceType type;
 };
 
-[SecureContext, Exposed=Window] interface XRReferenceSpace : XRSpace {
+[SecureContext, Exposed=Window] interface XRReferenceSpace : XRSpace {  
+  attribute XRRigidTransform? baseTransform;
+
   attribute EventHandler onreset;
 };
 
