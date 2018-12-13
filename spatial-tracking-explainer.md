@@ -178,7 +178,7 @@ function onSessionStarted(session) {
 ```
 
 ### Application-supplied transforms
-Frequently developers will want to provide an additional, artificial transform on top of the user's tracked motion to allow the user to navigate larger scenes than their tracking systems or physical space allows. This effect is traditionally accomplished by mathematically combining the API-provided transform with the desired additional application transforms. It is useful to allow the API do handle it, however, because it ensures that all tracked values are transformed consistently, allowing the user's viewpoint and inputs to stay in sync.
+Frequently developers will want to provide an additional, artificial transform on top of the user's tracked motion to allow the user to navigate larger virtual scenes than their tracking systems or physical space allows. This effect is traditionally accomplished by mathematically combining the API-provided transform with the desired additional application transforms. WebXR offers developers a simplification to ensure that all tracked values are transformed consistently, allowing the user's viewpoint and inputs to stay in sync.
 
 Developers can specify application-specific transforms by setting the `originTransform` attribute of any `XRReferenceSpace`. When the `transform` is not null, any values queried using the `XRReferenceSpace` will be offset by the `position` and `orientation` the `originTransform` describes. The `XRReferenceSpace`'s `originTransform` can be updated at any time and will immediately take effect, meaning that any new values that are queried with the `XRReferenceSpace` will take into account the new `originTransform`. Previously queried values will not be altered. Changing the `originTransform` between pose queries in a single frame is not advised, since it will cause inconsistencies in the tracking data and rendered output.
 
@@ -202,7 +202,7 @@ function onSessionStarted(session) {
 }
 ```
 
-Another common use case for this attribute would be for a "teleportation" mechanic, where the user "jumps" to a new point in the virtual scene, after which the selected point is treated as the new origin which all tracked motion is relative to.
+Another common use case for this attribute would be for a "teleportation" mechanic, where the user "jumps" to a new point in the virtual scene, after which the selected point is treated as the new virtual origin which all tracked motion is relative to.
 
 ```js
 // Teleport the user a certain number of meters along the X, Y, and Z axes
@@ -404,7 +404,7 @@ dictionary XRReferenceSpaceOptions {
 };
 
 [SecureContext, Exposed=Window] interface XRReferenceSpace : XRSpace {  
-  attribute XRRigidTransform? originTransform;
+  attribute XRRigidTransform originTransform;
 
   attribute EventHandler onreset;
 };
