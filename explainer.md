@@ -621,8 +621,6 @@ dictionary XRRenderStateOptions {
 // Frame, Device Pose, and Views
 //
 
-// XRFrame and XRPose are also listed in spatial-tracking-explainer.md
-
 [SecureContext, Exposed=Window] interface XRFrame {
   readonly attribute XRSession session;
 
@@ -633,9 +631,11 @@ dictionary XRRenderStateOptions {
 
 [SecureContext, Exposed=Window]
 interface XRPose {
-  // TODO: Need for some flags here?
-  // TODO: Room for things like velocity and acceleration in the future
+  readonly attribute boolean emulatedPosition;
+  // TODO: Need for additional flags here?
+
   readonly attribute XRRigidTransform transform;
+  // TODO: Room for things like velocity and acceleration in the future
 };
 
 enum XREye {

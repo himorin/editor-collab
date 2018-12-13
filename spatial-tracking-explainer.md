@@ -350,13 +350,18 @@ partial interface XRFrame {
   // Also listed in the main explainer.md
   XRViewerPose? getViewerPose(optional XRReferenceSpace referenceSpace);
   XRPose? getPose(XRSpace space, XRSpace relativeTo);
+
+  // Also listed in input-explainer.md	
+  XRInputPose? getInputPose(XRInputSource inputSource, optional XRReferenceSpace referenceSpace);
 };
 
 [SecureContext, Exposed=Window]
 interface XRPose {
-  // TODO: Need for some flags here?
-  // TODO: Room for things like velocity and acceleration in the future
+  readonly attribute boolean emulatedPosition;
+  // TODO: Need for additional flags here?
+
   readonly attribute XRRigidTransform transform;
+  // TODO: Room for things like velocity and acceleration in the future
 };
 
 //
