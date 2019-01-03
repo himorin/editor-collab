@@ -48,9 +48,12 @@ for (let inputSource of xrInputSources) {
 
   // Check to see if the pose is valid
   if (targetRayPose) {
-    let gripPose = xrFrame.getPose(inputSource.gripSpace, xrFrameOfRef);
-    // Render a visualization of the input source (see next section).
-    renderInputSource(session, inputSource, gripPose);
+    if (inputSource.gripSpace) {
+      // Render a visualization of the input source if it has a grip space.
+      // (See next section for details).
+      let gripPose = xrFrame.getPose(inputSource.gripSpace, xrFrameOfRef);
+      renderInputSource(session, inputSource, gripPose);
+    }
 
     // Highlight any objects that the target ray intersects with.
     let hoveredObject = scene.getObjectIntersectingRay(new XRRay(targetRayPose.transform));
@@ -182,10 +185,10 @@ Most applications will want to visually represent the input sources somehow. The
 
 // Render a visualization of the input source - eg. a controller mesh.
 function renderInputSource(session, inputSource, gripPose) {
-  // FIXME: Using a fictional isDisplayOpaque() method to state that controller meshes should not be rendered
-  // on transparent displays (AR).
-  if (isDisplayOpaque(session) && gripPose) {
-    // Render a controller mesh if the using the gripPose as a transform.
+  // Controller meshes should not be rendered on transparent displays (AR), so
+  // only render a controller mesh if the XREnvironmentBlendMode is 'opaque' and
+  // we have a valid gripPose to transform it with.
+  if (gripPose && session.environmentBlendMode == 'opaque') {
     let controllerMesh = getControllerMesh(inputSource);
     renderer.drawMeshAtTransform(controllerMesh, gripPose.transform);
   }
@@ -229,23 +232,18 @@ function onSelectStart(event) {
   // Ignore the event if we are already dragging
   if (activeDragInteraction)
     return;
-  
-  // Ignore the event if this input source is not capable of tracking.
-  if (!event.inputSource.gripSpace)
-     return;
 
   let targetRayPose = event.frame.getPose(event.inputSource.targetRaySpace, xrReferenceSpace);
-  let gripPose = event.frame.getPose(event.inputSource.gripSpace, xrReferenceSpace);
 
   // Use the input source target ray to find a draggable object in the scene
   let hitResult = scene.hitTest(new XRRay(targetRayPose.transform));
   if (hitResult && hitResult.draggable) {
-    // Use the gripPose position to drag the intersected object, rather than the target ray.
+    // Use the targetRayPose position to drag the intersected object.
     activeDragInteraction = {
       target: hitResult,
       targetStartPosition: hitResult.position,
       inputSource: event.inputSource,
-      inputSourceStartPosition: gripPose.transform.position;
+      inputSourceStartPosition: targetRayPose.transform.position;
     };
   }
 }
@@ -259,19 +257,17 @@ function onSelectEnd(event) {
 // Called by the fictional app/middleware every frame
 function onUpdateScene() {
   if (activeDragInteraction) {
-    let gripPose = frame.getPose(activeDragInteraction.inputSource.gripSpace, xrReferenceSpace);
-    if (gripPose) {
+    let targetRayPose = frame.getPose(activeDragInteraction.inputSource.targetRaySpace, xrReferenceSpace);
+    if (targetRayPose) {
       // Determine the vector from the start of the drag to the input source's current position
       // and position the draggable object accordingly
-      let deltaPosition = Vector3.subtract(gripPose.transform.position, activeDragInteraction.inputSourceStartPosition);
+      let deltaPosition = Vector3.subtract(targetRayPose.transform.position, activeDragInteraction.inputSourceStartPosition);
       let newPosition = Vector3.add(activeDragInteraction.targetStartPosition, deltaPosition);
       activeDragInteraction.target.setPosition(newPosition);
     }
   }
 }
 ```
-
-The above sample is optimized for dragging items in the scene around using input sources that have a `gripSpace`. It would also be possible to add further script logic to use the target ray properties to position items in the world - this is left as an exercise for the reader.
 
 ### Screen Input
 
@@ -337,7 +333,7 @@ interface XRInputSource {
   readonly attribute XRHandedness handedness;
   readonly attribute XRTargetRayMode targetRayMode;
   readonly attribute XRSpace targetRaySpace;
-  readonly attribute XRSpace gripSpace;
+  readonly attribute XRSpace? gripSpace;
 };
 
 //
