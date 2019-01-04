@@ -48,13 +48,6 @@ for (let inputSource of xrInputSources) {
 
   // Check to see if the pose is valid
   if (targetRayPose) {
-    if (inputSource.gripSpace) {
-      // Render a visualization of the input source if it has a grip space.
-      // (See next section for details).
-      let gripPose = xrFrame.getPose(inputSource.gripSpace, xrFrameOfRef);
-      renderInputSource(session, inputSource, gripPose);
-    }
-
     // Highlight any objects that the target ray intersects with.
     let hoveredObject = scene.getObjectIntersectingRay(new XRRay(targetRayPose.transform));
     if (hoveredObject) {
@@ -62,6 +55,10 @@ for (let inputSource of xrInputSources) {
       drawHighlightFrom(hoveredObject, inputSource);
     }
   }
+
+  // Render a visualization of the input source if appropriate.
+  // (See next section for details).
+  renderInputSource(xrFrame, inputSource);
 }
 ```
 
@@ -184,11 +181,17 @@ Most applications will want to visually represent the input sources somehow. The
 // These methods presumes the use of a fictionalized rendering library.
 
 // Render a visualization of the input source - eg. a controller mesh.
-function renderInputSource(session, inputSource, gripPose) {
+function renderInputSource(xrFrame, inputSource) {
+  // Don't render an input source if it doesn't have a grip space.
+  if (!inputSource.gripSpace)
+    return;
+
+  let gripPose = xrFrame.getPose(inputSource.gripSpace, xrFrameOfRef);
+
   // Controller meshes should not be rendered on transparent displays (AR), so
   // only render a controller mesh if the XREnvironmentBlendMode is 'opaque' and
   // we have a valid gripPose to transform it with.
-  if (gripPose && session.environmentBlendMode == 'opaque') {
+  if (gripPose && xrFrame.session.environmentBlendMode == 'opaque') {
     let controllerMesh = getControllerMesh(inputSource);
     renderer.drawMeshAtTransform(controllerMesh, gripPose.transform);
   }

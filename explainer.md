@@ -631,11 +631,8 @@ dictionary XRRenderStateOptions {
 
 [SecureContext, Exposed=Window]
 interface XRPose {
-  readonly attribute boolean emulatedPosition;
-  // TODO: Need for additional flags here?
-
   readonly attribute XRRigidTransform transform;
-  // TODO: Room for things like velocity and acceleration in the future
+  readonly attribute boolean emulatedPosition;
 };
 
 enum XREye {
