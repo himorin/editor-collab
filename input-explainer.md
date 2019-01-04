@@ -295,10 +295,6 @@ function onSessionStarted(session) {
   // Rest of session start up logic
 }
 
-
-  session.addEventListener("inputsourceschange", ev => {
-  });
-
 let preferredHitTestSource = null;
 function onInputSourcesChange(event) {
   let oldPreferredInputSource = preferredInputSource;
