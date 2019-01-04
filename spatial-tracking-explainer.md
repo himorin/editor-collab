@@ -284,6 +284,15 @@ Example reasons `onreset` may fire:
 
 The `onreset` event will **NOT** fire as an `XRUnboundedReferenceSpace` makes small changes to its origin as part of maintaining space stability near the user; these are considered minor corrections rather than a discontinuity in the origin.
 
+## Anchors
+```js
+  let hitTestResults = xrFrame.getHitTestResults(hitTestSource, xrReferenceSpace);
+  let xrAnchor = null;
+  xrFrame.requestAnchor(xrReferenceSpace, hitTestResults[0].transform).then((anchor) => {
+    xrAnchor = anchor;
+  });
+```
+
 ## Appendix A : Miscellaneous
 
 ### Tracking Systems Overview
@@ -350,6 +359,7 @@ partial interface XRFrame {
   // Also listed in the main explainer.md
   XRViewerPose? getViewerPose(optional XRReferenceSpace referenceSpace);
   XRPose? getPose(XRSpace space, XRSpace relativeTo);
+  Promise<XRAnchor> requestAnchor(XRSpace relativeTo, XRRigidTransform offset);
 };
 
 [SecureContext, Exposed=Window]
@@ -420,6 +430,16 @@ interface XRBoundedReferenceSpace : XRReferenceSpace {
 
 [SecureContext, Exposed=Window] 
 interface XRUnboundedReferenceSpace : XRReferenceSpace {
+};
+
+//
+// Anchor
+//
+
+[SecureContext, Exposed=Window] 
+interface XRAnchor : XRSpace {
+  // Is this meaningful? Or can we get rid of this type altogether for right now?
+  attribute EventHandler onupdate;
 };
 
 //
