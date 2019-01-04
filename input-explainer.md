@@ -56,7 +56,7 @@ for (let inputSource of xrInputSources) {
     }
   }
 
-  // Render a visualization of the input source if appropriate.
+  // Render a visualization of the input source if appropriate.              
   // (See next section for details).
   renderInputSource(xrFrame, inputSource);
 }
@@ -66,17 +66,17 @@ Some platforms may support both tracked and non-tracked input sources concurrent
 
 ```js
 // Keep track of the last-used input source
-var lastInputSource = null;
+var preferredInputSource = null;
 
 function onSessionStarted(session) {
   session.addEventListener("selectstart", event => {
     // Update the last-used input source
-    lastInputSource = event.inputSource;
+    preferredInputSource = event.inputSource;
   });
   session.addEventListener("inputsourceschange", ev => {
     // Choose an appropriate default from available inputSources, such as prioritizing based on the value of targetRayMode:
     // 'screen' over 'tracked-pointer' over 'gaze'.
-    lastInputSource = computePreferredInputSource(session.getInputSources());
+    preferredInputSource = computePreferredInputSource(session.getInputSources());
   });
 
   // Remainder of session initialization logic.
@@ -84,7 +84,7 @@ function onSessionStarted(session) {
 
 function drawHighlightFrom(hoveredObject, inputSource) {
   // Only highlight meshes that are targeted by the last used input source.
-  if (inputSource == lastInputSource) {
+  if (inputSource == preferredInputSource) {
     // Render a visualization of the highlighted object. (see next section)
     renderer.drawHighlightFrom(hoveredObject);
   }
@@ -93,11 +93,11 @@ function drawHighlightFrom(hoveredObject, inputSource) {
 // Called by the fictional app/middleware
 function drawScene() {
   // Display only a single cursor or ray, on the most recently used input source.
-  if (lastInputSource) {
-    let targetRayPose = xrFrame.getPose(lastInputSource.targetRaySpace, xrReferenceSpace);
+  if (preferredInputSource) {
+    let targetRayPose = xrFrame.getPose(preferredInputSource.targetRaySpace, xrReferenceSpace);
     if (targetRayPose) {
       // Render a visualization of the target ray/cursor of the active input source. (see next section)
-      renderCursor(lastInputSource, targetRayPose)
+      renderCursor(preferredInputSource, targetRayPose)
     }
   }
 }
@@ -280,6 +280,61 @@ When the canvas receives a `pointerdown` event an `XRInputSource` is created wit
 
 For each of these events the `XRInputSource`'s target ray must be updated to originate at the point that was interacted with on the canvas, projected onto the near clipping plane (defined by the `depthNear` attribute of the `XRSession`) and extending out into the scene along that projected vector.
 
+### Environmental hit-testing
+Descriptive text goes here
+
+```js
+let viewerHitTestSource = null;
+function onSessionStarted(session) {
+  xrSession.requestHitTestSource(xrSession.viewerSpace).then((hitTestSource) => {
+    viewerHitTestSource = hitTestSource;
+  });
+
+  xrSession.addEventListener('inputsourceschange', onInputSourcesChange);
+  
+  // Rest of session start up logic
+}
+
+
+  session.addEventListener("inputsourceschange", ev => {
+  });
+
+let preferredHitTestSource = null;
+function onInputSourcesChange(event) {
+  let oldPreferredInputSource = preferredInputSource;
+
+  // Choose an appropriate default from available inputSources, such as prioritizing based on the value of targetRayMode:
+  // 'screen' over 'tracked-pointer' over 'gaze'.
+  preferredInputSource = computePreferredInputSource(session.getInputSources()); // does this return null if it's gaze? should we always have a button-less gaze input for screen-base XR?
+
+  if (oldPreferredInputSource == preferredInputSource)
+    return;
+
+  if (preferredInputSource == null || preferredInputSource.targetRayMode == "gaze")
+  {
+    if (preferredHitTestSource != viewerHitTestSource){
+      preferredHitTestSource = viewerHitTestSource;
+    }
+  } else {
+    preferredHitTestSource = null;
+    xrSession.requestHitTestSource(inputSource).then((hitTestSource) => {
+      if (preferredHitTestSource == null) {
+        preferredHitTestSource = hitTestSource;
+      }
+    });
+  }
+}
+
+function onDrawFrame(timestamp, xrFrame) {
+  // Frame logic
+
+  let hitTestResults = xrFrame.getHitTestResults(preferredHitTestSource, xrReferenceSpace);
+  // check if virtual objects are closer than environment and use the closer one to draw the cursor/ray
+
+  // Other frame logic
+}
+```
+
 ## Appendix A: Proposed partial IDL
 This is a partial IDL and is considered additive to the core IDL found in the main [explainer](explainer.md).
 ```webidl
@@ -288,6 +343,9 @@ This is a partial IDL and is considered additive to the core IDL found in the ma
 //
 
 partial interface XRSession {
+  readonly attribute XRSpace viewerSpace; // this is the space populated on 0-DOF XRInputSource.targetRaySpace
+  Promise<XRHitTestSource> requestHitTestSource(XRSpace space, optional XRRay ray);
+
   FrozenArray<XRInputSource> getInputSources();
   
   attribute EventHandler onselect;
@@ -304,6 +362,8 @@ partial interface XRFrame {
   // Also listed in the spatial-tracking-explainer.md
   XRViewerPose? getViewerPose(optional XRReferenceSpace referenceSpace);
   XRPose? getPose(XRSpace space, XRSpace relativeTo);
+
+  FrozenArray<XRHitTest> getHitTestResults(XRHitTestSource hitTestSource, optional XRSpace relativeTo);
 };
 
 //
@@ -337,6 +397,25 @@ interface XRInputSource {
   readonly attribute XRTargetRayMode targetRayMode;
   readonly attribute XRSpace targetRaySpace;
   readonly attribute XRSpace? gripSpace;
+};
+
+//
+// Hit Testing
+//
+
+[SecureContext, Exposed=Window]
+interface XRHitTestSource {
+  readonly attribute XRSpace space;
+  readonly attribute XRRay offsetRay; // defaults to forward ray
+};
+
+[SecureContext, Exposed=Window]
+interface XRHitTestResult {
+  readonly attribute XRRigidTransform transform;
+  // other things like:
+  // normal
+  // confidence 
+  // type of object hit?
 };
 
 //
