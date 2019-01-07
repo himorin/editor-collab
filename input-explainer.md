@@ -284,50 +284,21 @@ For each of these events the `XRInputSource`'s target ray must be updated to ori
 Descriptive text goes here
 
 ```js
-let viewerHitTestSource = null;
-function onSessionStarted(session) {
-  xrSession.requestHitTestSource(xrSession.viewerSpace).then((hitTestSource) => {
-    viewerHitTestSource = hitTestSource;
-  });
-
-  xrSession.addEventListener('inputsourceschange', onInputSourcesChange);
-  
-  // Rest of session start up logic
-}
-
-let preferredHitTestSource = null;
-function onInputSourcesChange(event) {
-  let oldPreferredInputSource = preferredInputSource;
-
-  // Choose an appropriate default from available inputSources, such as prioritizing based on the value of targetRayMode:
-  // 'screen' over 'tracked-pointer' over 'gaze'.
-  preferredInputSource = computePreferredInputSource(session.getInputSources()); // does this return null if it's gaze? should we always have a button-less gaze input for screen-base XR?
-
-  if (oldPreferredInputSource == preferredInputSource)
-    return;
-
-  if (preferredInputSource == null || preferredInputSource.targetRayMode == "gaze")
-  {
-    if (preferredHitTestSource != viewerHitTestSource){
-      preferredHitTestSource = viewerHitTestSource;
-    }
-  } else {
-    preferredHitTestSource = null;
-    xrSession.requestHitTestSource(inputSource).then((hitTestSource) => {
-      if (preferredHitTestSource == null) {
-        preferredHitTestSource = hitTestSource;
-      }
-    });
-  }
-}
-
 function onDrawFrame(timestamp, xrFrame) {
   // Frame logic
 
-  let hitTestResults = xrFrame.getHitTestResults(preferredHitTestSource, xrReferenceSpace);
+  let hitTestResults = xrFrame.getHitTestResults(preferredInputSource.hitTestSource, xrReferenceSpace);
   // check if virtual objects are closer than environment and use the closer one to draw the cursor/ray
 
   // Other frame logic
+}
+
+let blahHitTestSource = null;
+function blah(foobar) {
+  XRSpace space = // some other way to create a space, why I don't know....
+  xrSession.requestHitTestSource(space).then((hitTestSource) => {
+    blahHitTestSource = hitTestSource;
+  });
 }
 ```
 
@@ -339,7 +310,6 @@ This is a partial IDL and is considered additive to the core IDL found in the ma
 //
 
 partial interface XRSession {
-  readonly attribute XRSpace viewerSpace; // this is the space populated on 0-DOF XRInputSource.targetRaySpace
   Promise<XRHitTestSource> requestHitTestSource(XRSpace space, optional XRRay ray);
 
   FrozenArray<XRInputSource> getInputSources();
@@ -393,6 +363,7 @@ interface XRInputSource {
   readonly attribute XRTargetRayMode targetRayMode;
   readonly attribute XRSpace targetRaySpace;
   readonly attribute XRSpace? gripSpace;
+  readonly attribute XRHitTestSource hitTestSource;
 };
 
 //
@@ -401,7 +372,7 @@ interface XRInputSource {
 
 [SecureContext, Exposed=Window]
 interface XRHitTestSource {
-  readonly attribute XRSpace space;
+  readonly attribute XRSpace space; // for XRInputSource, it's always targetRaySpace;
   readonly attribute XRRay offsetRay; // defaults to forward ray
 };
 
