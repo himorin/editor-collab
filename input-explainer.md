@@ -395,25 +395,49 @@ interface XRRay {
   readonly attribute Float32Array matrix;
 };
 
+[SecureContext, Exposed=Window]
+interface XRInputSource {
+  readonly attribute XRSpace targetRaySpace;
+  readonly attribute XRHitTestSource hitTestSource;
+};
+
 enum XRHandedness {
   "",
   "left",
   "right"
 };
 
-enum XRTargetRayMode {
-  "gaze",
-  "tracked-pointer",
-  "screen"
+[SecureContext, Exposed=Window]
+interface XRTrackedInputSource : XRInputSource {
+  readonly attribute XRHandedness handedness;
+  readonly attribute XRSpace gripSpace;
+
+  // From the other PR
+  readonly attribute XRTrackedController? controller;
+  readonly attribute DOMString renderId;
 };
 
+// Per our conversation, I'm contemplating the approach that one of these should
+// ALWAYS be present with gamepad=null.  One and only one.  Regardless of whether 
+// or not there's other input sources.  It's a tad bit weird if there's a gamepad
+// plugged in, but I think it's less confusing to have two XRViewerInputSource
+// objects (one with gamepad and one without) to ensure that the oninputsourcechange 
+// event behaves as expected should the gamepad be unplugged.
+//
+// The bonus to this approach is that in the event handler for select, developers can
+// query the button on the gamepad that actually fired the event...
+//
+// Also your point about tracked controllers potentially having both hands and buttons
+// can also  be applied to the XRViewerInputSource if needed.
 [SecureContext, Exposed=Window]
-interface XRInputSource {
-  readonly attribute XRHandedness handedness;
-  readonly attribute XRTargetRayMode targetRayMode;
-  readonly attribute XRSpace targetRaySpace;
-  readonly attribute XRSpace? gripSpace;
-  readonly attribute XRHitTestSource hitTestSource;
+interface XRViewerInputSource : XRInputSource {
+  readonly attribute Gamepad? gamepad;
+};
+
+// One per touch-point
+[SecureContext, Exposed=Window]
+interface XRScreenInputSource : XRInputSource {
+  // Add screen coordinates?
 };
 
 //
