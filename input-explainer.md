@@ -56,7 +56,7 @@ for (let inputSource of xrInputSources) {
     }
   }
 
-  // Render a visualization of the input source if appropriate.              
+  // Render a visualization of the input source if appropriate.
   // (See next section for details).
   renderInputSource(xrFrame, inputSource);
 }
@@ -283,6 +283,7 @@ For each of these events the `XRInputSource`'s target ray must be updated to ori
 ### Environmental hit-testing
 Descriptive text goes here
 
+Basic example of using input sources to get hit test results each frame
 ```js
 function onDrawFrame(timestamp, xrFrame) {
   // Frame logic
@@ -293,12 +294,10 @@ function onDrawFrame(timestamp, xrFrame) {
   // Other frame logic
 }
 ```
-```js
-let objectBounds = { frontLeft: new XRRigidTransform({x:-.5, y:0, z:.5),
-                     frontRight: new XRRigidTransform({x:.5, y:0, z:.5),
-                     backLeft: new XRRigidTransform({x:-.5, y:0, z:-.5),
-                     backRight: new XRRigidTransform({x:.5, y:0, z:-.5) };
 
+Sample of creating a secondary hit test source to find valid planes for dropping an object.
+This code is cribbed from a section above and then updated
+```js
 function onSelectStart(event) {
   // Ignore the event if we are already dragging
   if (activeDragInteraction)
@@ -315,36 +314,50 @@ function onSelectStart(event) {
       targetStartPosition: hitResult.position,
       inputSource: event.inputSource,
       inputSourceStartPosition: targetRayPose.transform.position;
-      hitTestBounds: {};
     };
-  }
 
-  foreach (key in objectBounds.keys) {
-    xrSession.requestHitTestSource(event.inputSource.targetRaySpace, objectBounds[key]).then((hitTestSource) => {
-      activeDragInteraction.hitTestBounds[key] = hitTestSource;
+    xrSession.requestHitTestSource({ space:event.inputSource.targetRaySpace, type:"horizontal-plane"}).then((hitTestSource) => {
+      activeDragInteraction.hitTestSource = hitTestSource;
     });
+  }
+}
+
+let anchors = [];
+
+// Only end the drag when the input source that started dragging releases the select action
+function onSelectEnd(event) {
+  if (activeDragInteraction && event.inputSource == activeDragInteraction.inputSource) {
+    let frame = event.frame;
+    let virtualHitResult = scene.hitTest(new XRRay(targetRayPose.transform));
+    if (activeDragInteraction.hitTestSource) {
+      let environmentHitTestResult = frame.getHitTestResults(activeDragInteraction.hitTestSource, xrReferenceSpace);
+    }
+
+    let targetPose = scene.getUpdatedDragTarget(virtualHitResult, environmentalHitResult);
+    if (targetpose != null && targetPose != virtualHitTestResult) {
+      frame.requestAnchor({space:xrReferenceSpace, offset:targetPose, type:activeDragInteraction.hitTestSource.type}).then((anchor) => {
+        anchors.add(anchor);
+      });
+    }
+
+    activeDragInteraction = null;
   }
 }
 
 function onUpdateScene() {
   if (activeDragInteraction) {
-    let targetPose = null;
     
-    let environmentHitTestResults = xrFrame.getHitTestResults(preferredInputSource.hitTestSource, xrReferenceSpace);
-    
-    let boundsHitTestResults = {};
-    foreach (key in activeDragInteraction.hitTestBounds) {
-      boundsHitTestResults[key] = xrFrame.getHitTestResults(activeDragInteraction.hitTestBounds, xrReferenceSpace);
+    let virtualHitResult = scene.hitTest(new XRRay(targetRayPose.transform));
+    if (activeDragInteraction.hitTestSource) {
+      let environmentHitTestResult = xrFrame.getHitTestResults(activeDragInteraction.hitTestSource, xrReferenceSpace);
     }
 
-    let hitResult = scene.hitTest(new XRRay(targetRayPose.transform));
-
-    // TODO some logic to make the determination that the spot is valid and set targetPose
+    let targetPose = scene.getUpdatedDragTarget(virtualHitResult, environmentalHitResult);
 
     if (targetPose) {
       // Determine the vector from the start of the drag to the input source's current position
       // and position the draggable object accordingly
-      let deltaPosition = Vector3.subtract(transform.position, activeDragInteraction.inputSourceStartPosition);
+      let deltaPosition = Vector3.subtract(targetPose.position, activeDragInteraction.inputSourceStartPosition);
       let newPosition = Vector3.add(activeDragInteraction.targetStartPosition, deltaPosition);
       activeDragInteraction.target.setPosition(newPosition); // TODO make this an XRRigidTransform function?
     }
@@ -360,7 +373,7 @@ This is a partial IDL and is considered additive to the core IDL found in the ma
 //
 
 partial interface XRSession {
-  Promise<XRHitTestSource> requestHitTestSource(XRSpace space, optional XRRay ray);
+  Promise<XRHitTestSource> requestHitTestSource(XRSpace space, optional XRRay ray, optional XRHitTestType hitTestType);
 
   FrozenArray<XRInputSource> getInputSources();
   
@@ -397,7 +410,12 @@ interface XRRay {
 
 [SecureContext, Exposed=Window]
 interface XRInputSource {
-  readonly attribute XRSpace targetRaySpace;
+  // TODO: Consider if we should we remove this in favor just using hitTestSource.InputSource?
+  readonly attribute XRSpace targetRaySpace; 
+
+  // hitTestSource.space = targetRaySpace
+  // hittestSource.type = ""
+  // hitTestSource.offsetRay = FORWARD RAY
   readonly attribute XRHitTestSource hitTestSource;
 };
 
@@ -417,18 +435,6 @@ interface XRTrackedInputSource : XRInputSource {
   readonly attribute DOMString renderId;
 };
 
-// Per our conversation, I'm contemplating the approach that one of these should
-// ALWAYS be present with gamepad=null.  One and only one.  Regardless of whether 
-// or not there's other input sources.  It's a tad bit weird if there's a gamepad
-// plugged in, but I think it's less confusing to have two XRViewerInputSource
-// objects (one with gamepad and one without) to ensure that the oninputsourcechange 
-// event behaves as expected should the gamepad be unplugged.
-//
-// The bonus to this approach is that in the event handler for select, developers can
-// query the button on the gamepad that actually fired the event...
-//
-// Also your point about tracked controllers potentially having both hands and buttons
-// can also  be applied to the XRViewerInputSource if needed.
 [SecureContext, Exposed=Window]
 interface XRViewerInputSource : XRInputSource {
   readonly attribute Gamepad? gamepad;
@@ -444,10 +450,29 @@ interface XRScreenInputSource : XRInputSource {
 // Hit Testing
 //
 
+enum XRSpaceType {
+  "",
+  "vertical-plane",
+  "horizontal-plane",
+  // in the future maybe "bounded-volume"
+};
+
+dictionary XRHitTestSourceOptions {
+  required XRSpace space;
+  attribute XRRay offsetRay = new XRRay();
+  XRHitTestType type = ""; 
+};
+
+// TODO: Consider if this should inherit from XRSpace instead?
 [SecureContext, Exposed=Window]
 interface XRHitTestSource {
-  readonly attribute XRSpace space; // for XRInputSource, it's always targetRaySpace;
-  readonly attribute XRRay offsetRay; // defaults to forward ray
+  readonly attribute XRSpace space;
+  readonly attribute XRRay offsetRay;
+  readonly attribute XRHitTestType type; 
+
+  // TODO: consider adding?
+  // Promise<void> updateOffsetRay(XRRay ray);
+  // Promise<void> updateType(XRHitTestType type);
 };
 
 [SecureContext, Exposed=Window]
@@ -457,6 +482,7 @@ interface XRHitTestResult {
   // normal
   // confidence 
   // type of object hit?
+  // bounds of plane if "vertical-plane" or "horizontal-plane" requested
 };
 
 //

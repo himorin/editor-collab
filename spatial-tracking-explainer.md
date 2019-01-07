@@ -359,7 +359,7 @@ partial interface XRFrame {
   // Also listed in the main explainer.md
   XRViewerPose? getViewerPose(optional XRReferenceSpace referenceSpace);
   XRPose? getPose(XRSpace space, XRSpace relativeTo);
-  Promise<XRAnchor> requestAnchor(XRSpace relativeTo, XRRigidTransform offset);
+  Promise<XRAnchor> requestAnchor(XRAnchorOptions options);
 };
 
 [SecureContext, Exposed=Window]
@@ -436,8 +436,15 @@ interface XRUnboundedReferenceSpace : XRReferenceSpace {
 // Anchor
 //
 
+dictionary XRAnchorOptions  {
+  required XRSpace relativeTo;
+  XRRigidTransform offset;
+  XRSpaceType type;
+};
+
 [SecureContext, Exposed=Window] 
 interface XRAnchor : XRSpace {
+  readonly attribute XRSpaceType type;
   // Is this meaningful? Or can we get rid of this type altogether for right now?
   attribute EventHandler onupdate;
 };
