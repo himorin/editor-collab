@@ -292,13 +292,63 @@ function onDrawFrame(timestamp, xrFrame) {
 
   // Other frame logic
 }
+```
+```js
+let objectBounds = { frontLeft: new XRRigidTransform({x:-.5, y:0, z:.5),
+                     frontRight: new XRRigidTransform({x:.5, y:0, z:.5),
+                     backLeft: new XRRigidTransform({x:-.5, y:0, z:-.5),
+                     backRight: new XRRigidTransform({x:.5, y:0, z:-.5) };
 
-let blahHitTestSource = null;
-function blah(foobar) {
-  XRSpace space = // some other way to create a space, why I don't know....
-  xrSession.requestHitTestSource(space).then((hitTestSource) => {
-    blahHitTestSource = hitTestSource;
-  });
+function onSelectStart(event) {
+  // Ignore the event if we are already dragging
+  if (activeDragInteraction)
+    return;
+
+  let targetRayPose = event.frame.getPose(event.inputSource.targetRaySpace, xrReferenceSpace);
+
+  // Use the input source target ray to find a draggable object in the scene
+  let hitResult = scene.hitTest(new XRRay(targetRayPose.transform));
+  if (hitResult && hitResult.draggable) {
+    // Use the targetRayPose position to drag the intersected object.
+    activeDragInteraction = {
+      target: hitResult,
+      targetStartPosition: hitResult.position,
+      inputSource: event.inputSource,
+      inputSourceStartPosition: targetRayPose.transform.position;
+      hitTestBounds: {};
+    };
+  }
+
+  foreach (key in objectBounds.keys) {
+    xrSession.requestHitTestSource(event.inputSource.targetRaySpace, objectBounds[key]).then((hitTestSource) => {
+      activeDragInteraction.hitTestBounds[key] = hitTestSource;
+    });
+  }
+}
+
+function onUpdateScene() {
+  if (activeDragInteraction) {
+    let targetPose = null;
+    
+    let environmentHitTestResults = xrFrame.getHitTestResults(preferredInputSource.hitTestSource, xrReferenceSpace);
+    
+    let boundsHitTestResults = {};
+    foreach (key in activeDragInteraction.hitTestBounds) {
+      boundsHitTestResults[key] = xrFrame.getHitTestResults(activeDragInteraction.hitTestBounds, xrReferenceSpace);
+    }
+
+    let hitResult = scene.hitTest(new XRRay(targetRayPose.transform));
+
+    // TODO some logic to make the determination that the spot is valid and set targetPose
+
+    if (targetPose) {
+      // Determine the vector from the start of the drag to the input source's current position
+      // and position the draggable object accordingly
+      let deltaPosition = Vector3.subtract(transform.position, activeDragInteraction.inputSourceStartPosition);
+      let newPosition = Vector3.add(activeDragInteraction.targetStartPosition, deltaPosition);
+      activeDragInteraction.target.setPosition(newPosition); // TODO make this an XRRigidTransform function?
+    }
+  }
 }
 ```
 
