@@ -296,71 +296,88 @@ function onDrawFrame(timestamp, xrFrame) {
 ```
 
 Sample of creating a secondary hit test source to find valid planes for dropping an object.
-This code is cribbed from a section above and then updated
+This code is cribbed from a section above and then updated.
+`hitTestResult.isVirtual` and `hitTestResult.target.isDraggable` are not part of the proposed 
+API; they're imaginary engine implementation details
 ```js
+function getHitTestResult(frame, hitTestSource) {
+  let hitTestResult = null;
+
+  let viewerPose = frame.getViewerPose(xrReferenceSpace);
+  if (!viewerPose || !hitTestSource)
+    return;
+
+  var realHitTestResults = frame.getHitTestResults(hitTestSource, xrReferenceSpace);
+
+  let targetRayPose = frame.getPose(hitTestSource, xrReferenceSpace);
+  if (targetRayPose) {
+    var virtualHitTestResult = scene.hitTest(new XRRay(targetRayPose.transform));
+  }
+
+  if (virtualHitTestResult && realHitTestResults[0]) {
+    let virtualDistance = MatrixMathLibrary.distance(viewerPose.transform, virtualHitTestResult.transform);
+    let realDistance = MatrixMathLibrary.distance(viewerPose.transform, realHitTestResults[0].transform);
+    hitTestResult = (virtualDistance > realDistance) ? realHitTestResults[0] : virtualHitTestResult;
+  } 
+  else if (realHitTestResults[0]) {
+    hitTestResult = realHitTestResults[0];
+  }
+  else if (virtualHitTestResult) {
+    hitTestResult = virtualHitTestResult;
+  }
+
+  return hitTestResult;
+}
+
 function onSelectStart(event) {
   // Ignore the event if we are already dragging
   if (activeDragInteraction)
     return;
 
-  let targetRayPose = event.frame.getPose(event.inputSource.targetRaySpace, xrReferenceSpace);
-
-  // Use the input source target ray to find a draggable object in the scene
-  let hitResult = scene.hitTest(new XRRay(targetRayPose.transform));
-  if (hitResult && hitResult.draggable) {
-    // Use the targetRayPose position to drag the intersected object.
+  // Use the input's hitTestSource to find a draggable object in the scene
+  let hitTestResult = getHitTestResult(event.frame, event.inputSource.hitTestSource);
+  if (hitTestResult && hitTestResult.target && hitTestResult.target.isDraggable) {
     activeDragInteraction = {
-      target: hitResult,
-      targetStartPosition: hitResult.position,
       inputSource: event.inputSource,
-      inputSourceStartPosition: targetRayPose.transform.position;
+      target: hitTestResult.target,
+      initialHitTestResult: hitTestResult
     };
 
+    // Change the hit-testing to look for a horizontal plane
     xrSession.requestHitTestSource({ space:event.inputSource.targetRaySpace, type:"horizontal-plane"}).then((hitTestSource) => {
       activeDragInteraction.hitTestSource = hitTestSource;
     });
   }
 }
 
+function onUpdateScene() {
+  // Other scene update logic
+
+  if (activeDragInteraction && event.inputSource == activeDragInteraction.inputSource) {
+    let hitTestResult = getHitTestResult(event.frame, activeDragInteraction.hitTestSource);
+    if (hitTestResult) {
+      activeDragInteraction.target.setPosition(hitTestResult.transform.position);
+    }
+  }
+
+  // Other scene update logic
+}
+
+
 let anchors = [];
 
 // Only end the drag when the input source that started dragging releases the select action
 function onSelectEnd(event) {
   if (activeDragInteraction && event.inputSource == activeDragInteraction.inputSource) {
-    let frame = event.frame;
-    let virtualHitResult = scene.hitTest(new XRRay(targetRayPose.transform));
-    if (activeDragInteraction.hitTestSource) {
-      let environmentHitTestResult = frame.getHitTestResults(activeDragInteraction.hitTestSource, xrReferenceSpace);
+    let hitTestResult = getHitTestResult(event.frame, activeDragInteraction.hitTestSource);
+    if (hitTestResult && !hitTestResult.isVirtual) {
+      if (MatrixMathLibrary.contains(hitTestResult.bounds, activeDragInteraction.target.footprint)) {
+        frame.requestAnchor({space:xrReferenceSpace, offset:hitTestResult, type:hitTestResult.type}).then((anchor) => {
+          anchors.push(anchor);
+        });
+      }
     }
-
-    let targetPose = scene.getUpdatedDragTarget(virtualHitResult, environmentalHitResult);
-    if (targetpose != null && targetPose != virtualHitTestResult) {
-      frame.requestAnchor({space:xrReferenceSpace, offset:targetPose, type:activeDragInteraction.hitTestSource.type}).then((anchor) => {
-        anchors.add(anchor);
-      });
-    }
-
     activeDragInteraction = null;
-  }
-}
-
-function onUpdateScene() {
-  if (activeDragInteraction) {
-    
-    let virtualHitResult = scene.hitTest(new XRRay(targetRayPose.transform));
-    if (activeDragInteraction.hitTestSource) {
-      let environmentHitTestResult = xrFrame.getHitTestResults(activeDragInteraction.hitTestSource, xrReferenceSpace);
-    }
-
-    let targetPose = scene.getUpdatedDragTarget(virtualHitResult, environmentalHitResult);
-
-    if (targetPose) {
-      // Determine the vector from the start of the drag to the input source's current position
-      // and position the draggable object accordingly
-      let deltaPosition = Vector3.subtract(targetPose.position, activeDragInteraction.inputSourceStartPosition);
-      let newPosition = Vector3.add(activeDragInteraction.targetStartPosition, deltaPosition);
-      activeDragInteraction.target.setPosition(newPosition); // TODO make this an XRRigidTransform function?
-    }
   }
 }
 ```
@@ -414,7 +431,7 @@ interface XRInputSource {
   readonly attribute XRSpace targetRaySpace; 
 
   // hitTestSource.space = targetRaySpace
-  // hittestSource.type = ""
+  // hitTestSource.type = ""
   // hitTestSource.offsetRay = FORWARD RAY
   readonly attribute XRHitTestSource hitTestSource;
 };
@@ -430,7 +447,7 @@ interface XRTrackedInputSource : XRInputSource {
   readonly attribute XRHandedness handedness;
   readonly attribute XRSpace gripSpace;
 
-  // From the other PR
+  // From PR #462 in the WebXR repo
   readonly attribute XRTrackedController? controller;
   readonly attribute DOMString renderId;
 };
@@ -454,7 +471,7 @@ enum XRSpaceType {
   "",
   "vertical-plane",
   "horizontal-plane",
-  // in the future maybe "bounded-volume"
+  // in the future maybe "bounded-volume" ?
 };
 
 dictionary XRHitTestSourceOptions {
@@ -470,7 +487,7 @@ interface XRHitTestSource {
   readonly attribute XRRay offsetRay;
   readonly attribute XRHitTestType type; 
 
-  // TODO: consider adding?
+  // TODO: Probably shouldn't add these, but I don't want to lose track of the possible approach
   // Promise<void> updateOffsetRay(XRRay ray);
   // Promise<void> updateType(XRHitTestType type);
 };
@@ -478,11 +495,15 @@ interface XRHitTestSource {
 [SecureContext, Exposed=Window]
 interface XRHitTestResult {
   readonly attribute XRRigidTransform transform;
-  // other things like:
-  // normal
+  readonly attribute XRRay normal;
+
+  // if we go the "type" approach, we probably want these here:
+  readonly attribute XRHitTestType type;
+  readonly attribute FrozenArray<DOMPointReadOnly>? boundsGeometry;
+
+  // TODO: Consider other things like:
   // confidence 
   // type of object hit?
-  // bounds of plane if "vertical-plane" or "horizontal-plane" requested
 };
 
 //
