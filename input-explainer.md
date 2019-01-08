@@ -390,7 +390,7 @@ This is a partial IDL and is considered additive to the core IDL found in the ma
 //
 
 partial interface XRSession {
-  Promise<XRHitTestSource> requestHitTestSource(XRSpace space, optional XRRay ray, optional XRHitTestType hitTestType);
+  Promise<XRHitTestSource> requestHitTestSource(XRSpace space, optional XRRay ray, optional XRSpaceType spaceType);
 
   FrozenArray<XRInputSource> getInputSources();
   
@@ -467,6 +467,9 @@ interface XRScreenInputSource : XRInputSource {
 // Hit Testing
 //
 
+// TODO: Fix this AWFUL name.  I don't want to imply spaces can only be of this list
+// I just was looking for something that would be usable by anchors too...
+// Maybe I should just call it XRAnchorType even though it'll be passed into requestHitTestSource?
 enum XRSpaceType {
   "",
   "vertical-plane",
@@ -477,7 +480,7 @@ enum XRSpaceType {
 dictionary XRHitTestSourceOptions {
   required XRSpace space;
   attribute XRRay offsetRay = new XRRay();
-  XRHitTestType type = ""; 
+  XRSpaceType type = ""; 
 };
 
 // TODO: Consider if this should inherit from XRSpace instead?
@@ -485,11 +488,11 @@ dictionary XRHitTestSourceOptions {
 interface XRHitTestSource {
   readonly attribute XRSpace space;
   readonly attribute XRRay offsetRay;
-  readonly attribute XRHitTestType type; 
+  readonly attribute XRSpaceType type; 
 
   // TODO: Probably shouldn't add these, but I don't want to lose track of the possible approach
   // Promise<void> updateOffsetRay(XRRay ray);
-  // Promise<void> updateType(XRHitTestType type);
+  // Promise<void> updateType(XRSpaceType type);
 };
 
 [SecureContext, Exposed=Window]
@@ -498,7 +501,7 @@ interface XRHitTestResult {
   readonly attribute XRRay normal;
 
   // if we go the "type" approach, we probably want these here:
-  readonly attribute XRHitTestType type;
+  readonly attribute XRSpaceType type;
   readonly attribute FrozenArray<DOMPointReadOnly>? boundsGeometry;
 
   // TODO: Consider other things like:
