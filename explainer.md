@@ -223,14 +223,18 @@ function onDrawFrame(timestamp, xrFrame) {
   if (xrSession) {
     let glLayer = xrSession.renderState.baseLayer;
     let pose = xrFrame.getViewerPose(xrReferenceSpace);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, glLayer.framebuffer);
+    if (pose) {
+      // Run imaginary 3D engine's simulation to step forward physics, animations, etc.
+      scene.updateScene(timestamp, xrFrame);
 
-    for (let view of pose.views) {
-      let viewport = glLayer.getViewport(view);
-      gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
-      drawScene(view);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, glLayer.framebuffer);
+
+      for (let view of pose.views) {
+        let viewport = glLayer.getViewport(view);
+        gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        drawScene(view);
+      }
     }
-
     // Request the next animation callback
     xrSession.requestAnimationFrame(onDrawFrame);
   } else {
