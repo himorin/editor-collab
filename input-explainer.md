@@ -230,7 +230,7 @@ function updateScene(timestamp, xrFrame) {
 }
 
 function getHitCombinedHitTestResult(frame, inputSource, hitTestSource) {
-  let hitTestResult = null;
+  let combinedResult = {};
 
   let viewerPose = frame.getViewerPose(xrReferenceSpace);
   if (!viewerPose)
@@ -248,26 +248,24 @@ function getHitCombinedHitTestResult(frame, inputSource, hitTestSource) {
   }
 
   // Explain that this is a grossly simplified way of determining which hit test result to use
+  let isVirtualCloser = false;
   if (virtualHitTestResult && realHitTestResults[0]) {
     let virtualDistance = MatrixMathLibrary.distance(viewerPose.transform, virtualHitTestResult.transform);
     let realDistance = MatrixMathLibrary.distance(viewerPose.transform, realHitTestResults[0].transform);
-    hitTestResult = (virtualDistance > realDistance) ? realHitTestResults[0] : virtualHitTestResult;
-  } 
-  else if (realHitTestResults[0]) {
-    hitTestResult = realHitTestResults[0];
+    isVirtualCloser = (virtualDistance < realDistance);
+  } else if (virtualHitTestResult) {
+    isVirtualCloser = true;
   }
-  else if (virtualHitTestResult) {
-    hitTestResult = virtualHitTestResult;
-  }
+  
+  combinedResult["result"] = (isVirtualCloser) ? virtualHitTestResult : realHitTestResults[0];
+  combinedResult["virtualTarget"] = (isVirtualCloser) ? virtualHitTestResult.target : null;
 
-  return hitTestResult;
+  return combinedResult;
 }
 ```
 
 ### Grab-and-Drag
 Another common operation in XR experiences is grabbing a virtual object and moving it to a new location. There are a number of ways to accomplish this experience, and a simple example is provided below to illustrate on approach to doing so with the WebXR apis.
-
->**NOTE** Fix confusion due to `hitTestResult.target` not being part of the proposed API; it's an imaginary engine implementation details
 
 The first step in the grab-and-drag operation is the "grab" step and is done in response to the `selectstart` event. If a draggable virtual object is hit by the `preferredInputSource`, the drag operation is begun by saving the data necessary for the next steps and giving the object a highlight that indicates it is being dragged.  Additionally, a new `XRHitTestSource` is created based on the `preferredInputSource` to ensure that the draggable object is only placed on horizontal real-world surfaces.
 
@@ -284,20 +282,20 @@ function onSelectStart(event) {
     preferredInputSource = event.inputSource;
 
     // Use the input's hitTestSource to find a draggable object in the scene
-    let hitTestResult = getHitCombinedHitTestResult(event.frame, 
-                                                    preferredInputSource, 
-                                                    hitTestSources[preferredInputSource]);
-    
+    let combinedHitTestResult = getHitCombinedHitTestResult(event.frame, 
+                                                            preferredInputSource, 
+                                                            hitTestSources[preferredInputSource]);
+
     // The virtualTarget object isn't part of the WebXR API.  It is
     // something set by the imaginary 3D engine in this example
-    let target = hitTestResult.virtualTarget;
+    let virtualTarget = combinedHitTestResult["virtualTarget"];
 
-    if (hitTestResult && target && target.isDraggable) {
+    if (virtualTarget && virtualTarget.isDraggable) {
       activeDragInteraction = {
         inputSource: inputSource,
-        target: target,
-        initialTargetTransform: target.transform,
-        initialHitTestResult: hitTestResult
+        target: virtualTarget,
+        initialTargetTransform: virtualTarget.transform,
+        initialHitTestResult: combinedHitTestResult["result"]
       };
 
       // Change the hit-testing to look for a horizontal plane
@@ -324,9 +322,9 @@ function updateScene() {
   if (activeDragInteraction) {
     let inputSource = activeDragInteraction.inputSource;
     let hitTestSource = activeDragInteraction.hitTestSource;
-    let hitTestResult = getHitCombinedHitTestResult(event.frame, inputSource, hitTestSource);
-    if (hitTestResult) {
-      activeDragInteraction.target.setTransform(hitTestResult.transform);
+    let combinedHitTestResult = getHitCombinedHitTestResult(event.frame, inputSource, hitTestSource);
+    if (combinedHitTestResult["result"]) {
+      activeDragInteraction.target.setTransform(combinedHitTestResult.transform);
     }
   }
 
@@ -343,17 +341,18 @@ function onSelectEnd(event) {
   // Only end the drag when the input source that started dragging releases the select action
   if (activeDragInteraction && event.inputSource == activeDragInteraction.inputSource) {
 
-    let hitTestResult = getHitCombinedHitTestResult(event.frame, 
-                                                    activeDragInteraction.inputSource, 
-                                                    activeDragInteraction.hitTestSource);
-    if (hitTestResult) {
+    let combinedHitTestResult = getHitCombinedHitTestResult(event.frame, 
+                                                            activeDragInteraction.inputSource, 
+                                                            activeDragInteraction.hitTestSource);
+    if (combinedHitTestResult["result"]) {
       let target = activeDragInteraction.target;
+      let result = combinedHitTestResult["result"];
 
       // Check if the object being dragged can fit at the requested 
       // destination by comparing the bounds to the imaginary 3D engine's 
       // target.footprint 
-      if (MatrixMathLibrary.contains(hitTestResult.bounds, target.footprint)) {
-        target.setTransform(hitTestResult.transform);
+      if (MatrixMathLibrary.contains(result.bounds, target.footprint)) {
+        target.setTransform(result.transform);
       } else {
         target.setTransform(initialTargetTransform.transform);
       }
@@ -385,10 +384,11 @@ As indicated in the table above, `gaze` style input sources should not draw a po
 function updateScene(timestamp, xrFrame) {
   // Scene update logic ...
 
-  let hitTestResult = getHitCombinedHitTestResult(xrFrame,
-                                                  preferredInputSource,
-                                                  hitTestSources[preferredInputSource]);
+  let combinedHitTestResult = getHitCombinedHitTestResult(xrFrame,
+                                                          preferredInputSource,
+                                                          hitTestSources[preferredInputSource]);
 
+  let hitTestResult = combinedHitTestResult["result"];
   updateCursor(hitTestResult);
   updateHighlight(hitTestResult);
   updateVirtualInputModels();
