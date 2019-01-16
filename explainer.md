@@ -622,6 +622,27 @@ dictionary XRRenderStateOptions {
 };
 
 //
+// Rigid Transforms and Rays
+//
+
+[SecureContext, Exposed=Window,
+ Constructor(optional DOMPointInit position, optional DOMPointInit orientation)]
+interface XRRigidTransform {
+  readonly attribute DOMPointReadOnly position;
+  readonly attribute DOMPointReadOnly orientation;
+  readonly attribute Float32Array matrix;
+};
+
+[SecureContext, Exposed=Window,
+ Constructor(optional DOMPointInit origin, optional DOMPointInit direction),
+ Constructor(XRRigidTransform transform)]
+interface XRRay {
+  readonly attribute DOMPointReadOnly origin;
+  readonly attribute DOMPointReadOnly direction;
+  readonly attribute Float32Array matrix;
+};
+
+//
 // Frame, Device Pose, and Views
 //
 
@@ -642,14 +663,6 @@ interface XRPose {
 enum XREye {
   "left",
   "right"
-};
-
-[SecureContext, Exposed=Window,
- Constructor(optional DOMPointInit position, optional DOMPointInit orientation)]
-interface XRRigidTransform {
-  readonly attribute DOMPointReadOnly position;
-  readonly attribute DOMPointReadOnly orientation;
-  readonly attribute Float32Array matrix;
 };
 
 [SecureContext, Exposed=Window] interface XRView {

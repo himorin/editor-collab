@@ -1,27 +1,23 @@
 # WebXR Device API - Input
-This document is a subsection of the main WebXR Device API explainer document which can be found [here](explainer.md).  The main explainer contains all the information you could possibly want to know about setting up a WebXR session, the render loop, and more.  In contrast, this document covers how to manage input across the range of XR hardware.
+This document explains the portion of the WebXR APIs for managing input across the range of XR hardware. For context, it may be helpful to have first read about [WebXR session establishment](explainer.md) and [spatial tracking](spatial-tracking-explainer.md). Further information can also be found in the [environmental awareness explainer](environmental-awareness-explainer.md).
 
 ## Concepts
-XR hardware provides a wide variety of input mechanisms including, but not limited to, screen taps, spatially-tracked articulated hands, single button clickers, voice commands, and fully spatially-tracked controllers with multiple buttons, joysticks, triggers, or touchpads.
-
-The goal of the WebXR API is to enable the widest-range of potential input devices, which it does by focusing on what they have in common and categorizing them based on their differences.  The commonality is that users will always need a way to aim in 3D space and a mechanism to indicate a when they are attempting to interact with what they are aiming at.  This concept is the foundation of the `XRInputSource` design and is known as "aim and select".
+In addition to the diversity of tracking and display technology, XR hardware may support a wide variety of input mechanisms including screen taps, motion controllers (with multiple buttons, joysticks, triggers, touchpads, etc), voice commands, spatially-tracked articulated hands, single button clickers, and more.  Despite this variation, all XR input mechanisms have a common purpose: enabling users to aim in 3D space and perform an action on the target of that aim. This concept is known as "aim and select" and is the foundation for how input is exposed in WebXR.
 
 ### Aiming categories
-The `XRInputSource` inherits from `XRSpace` and the intended aiming ray is defined as the forward vector in this space. While the selection mechanism will vary uniquely for each input device, the aiming mechanisms can be grouped into three categories: `tracked-pointer`, `gaze`, and `screen`.  
-
-#### Tracked Pointer
-Tracked pointers are input sources that are tracked independently of the viewer's location.  Examples include the Oculus Touch motion controllers and the Magic Leap hand tracking.
-
-In addition to the `XRSpace` intrinsic to an `XRInputSource`, this category of `XRInputSource` also exposes a secondary `XRSpace` called the `gripSpace` that communicates the location of the motion controller in a user's hand.  This different from the aiming ray, which often will have an origin at the tip of the motion controller and be angled slightly downward for comfort. The exact orientation of the ray relative to a given device should follow platform-specific guidelines if there are any. In the absence of platform-specific guidance or a physical device, the target ray should most likely point in the same direction as the user's index finger if it was outstretched.  For more details this topic, see the [Grip space](#Grip-space) section.
+All WebXR input sources can be divided into one of three categories based on the method by which users must aim: 'gaze', 'tracked-pointer', and 'screen'.
 
 #### Gaze
 Gaze-based input sources do not have their own tracking mechanism and instead use the viewer's head position for aiming. Example include 0DOF clickers, headset buttons, regular gamepads, and certain voice commands. Within this category, some input sources are persistent (e.g. those backed by hardware) while others will come-and-go when invoked by the user (e.g. voice commands).
 
+#### Tracked Pointer
+Tracked pointers are input sources able to be tracked separately from the viewer.  Examples include the Oculus Touch motion controllers and the Magic Leap hand tracking. For motion controllers, the aiming ray will often have an origin at the tip of motion controller and be angled slightly downward for comfort. The exact orientation of the ray relative to a given device follows platform-specific guidelines if there are any. In the absence of platform-specific guidance or a physical device, the target ray points in the same direction as the user's index finger if it was outstretched. Within this category, input sources are considered connected even if they are temporarily unable to be tracked in space.
+
 #### Screen
-When using an XR session on a 2D screen, pointer events on the relevant screen regions are monitored and `XRInputSource`s are generated in response to allow unified input handling with immersive mode controller or gaze input. For inline sessions with an `outputContext`, the monitored region is the `outputContext`'s canvas.  For immersive sessions (e.g. hand-held AR), the entire screen is monitored. The screen-based `XRInputSource`'s aiming ray must originate at the point that was interacted with on the canvas, projected onto the near clipping plane (defined by the `depthNear` attribute of the `XRSession`) and extending out into the scene along that projected vector.
+Screen based input is driven by mouse and touch interactions on a 2D screen that are then translated into a 3D aiming ray.  The aiming ray originates at the interacted point on the screen, projected onto the near clipping plane (defined by the `depthNear` attribute of the `XRSession`), and extending out into the scene along that projected vector. To accomplish this, pointer events over the relevant screen regions are monitored and temporary input sources are generated in response to allow unified input handling. For inline sessions with an `outputContext`, the monitored region is the `outputContext`'s canvas.  For immersive sessions (e.g. hand-held AR), the entire screen is monitored. 
 
 ### Selection styles
-In addition to an aiming ray, all `XRInputSource` objects must provide a mechanism for the user to perform a "select" action. This user intent is communicated to developers through events which are discussed in detail in the [Input events](#Input-events) section. The physical action which triggers this selection differs based on the input type, and may indicate (but is not limited to):
+In addition to an aiming ray, all input sources must provide a mechanism for the user to perform a "select" action. This user intent is communicated to developers through events which are discussed in detail in the [Input events](#Input-events) section. The physical action which triggers this selection differs based on the input type, and may indicate (but is not limited to):
 
   * Pressing a trigger
   * Clicking a touchpad
@@ -30,10 +26,9 @@ In addition to an aiming ray, all `XRInputSource` objects must provide a mechani
   * Speaking a command
   * Clicking or touching the screen
 
-### Emulate poses
-Some input sources may not be able to accurately track their position in space, and instead provide an estimated position based on the sensor data available. This is the case, for example, for the Daydream and GearVR 3DoF controllers, which use an arm model to approximate controller position based on rotation. It may also be true on devices while under tracking loss.  In these situations, the `emulatedPosition` attribute of the `XRPose` returned by `XRSession.getPose()` must be set to `true` to indicate that the translation components of retrieved pose matrices may not be accurate.
+## Basic usage
 
-## Enumerating input sources
+### Enumerating input sources
 Calling the `getInputSources()` function on an `XRSession` will return a list of all `XRInputSource`s that the user agent considers active. 
 The properties of an `XRInputSource` object are immutable. If a device can be manipulated in such a way that these properties can change, the `XRInputSource` will be removed and recreated.
 
@@ -57,6 +52,18 @@ function onInputSourcesChange(event) {
   xrInputSources = event.session.getInputSources();
 }
 ```
+
+### Aiming ray pose
+All `XRInputSource` objects inherit from `XRSpace` to represent the inputs source's aiming origin and direction in space.  This location can be determined for a given `XRFrame` by invoking `getPose()` and passing the `XRSource` as the `space` parameter. Generally, developers will wish supply their active `XRReferenceSpace` as the `relativeTo` parameter for consistency's sake. Developers should take care to check the result from `getPose()` as it may return `null` in cases where tracking has been lost or the `XRSpace`'s `XRInputSource` instance is no longer connected or available.
+
+```js
+let inputSourcePose = xrFrame.getPose(inputSource, xrReferenceSpace);
+if (inputSourcePose) {
+  // do something with the result
+}
+```
+
+Some input sources may only be able to provide an estimated position based on the sensor data available. This is the case, for example, for the Daydream and GearVR 3DoF controllers, which use an arm model to approximate controller position based on rotation. It may also be true on devices while under tracking loss.  In these situations, the `emulatedPosition` attribute of the `XRPose` returned by `XRFrame.getPose()` will be set to `true` to indicate that the translation components of retrieved pose matrices may not be accurate.
 
 ## Input events
 When the selection mechanism for an `XRInputSource` is invoked, three `XRInputSourceEvent` events are fired on the `XRSession`.
@@ -120,309 +127,100 @@ function onInputSourceChanged(event) {
 }
 ```
 
-## Hit testing
-"Hit testing" (aka "raycasting") is the process of finding intersections between 3D geometry and a ray, comprised of an origin and direction. Hit testing can be done against virtual 3D geometry or real-world 3D geometry. Most commonly in WebXR, developers will hit test from `XRInputSource`s or from the `XRSession.viewerSpace`.  Some purposes of hit testing might be to determine user intention, track where a cursor should be drawn on hand-held devices, or even to bounce a virtual object off real-world geometry. In WebXR, 'inline' and 'immersive-vr' sessions are limited to performing virtual hit tests, while 'immersive-ar' sessions can perform both virtual and real-world hit tests. 
-
-### Virtual hit testing
-A virtual hit test is a hit test that returns results from intersections with virtual 3D geometry. WebXR does not have any knowledge of the developer's 3D scene graph, but does have information about the real-world location of `XRInputSource` objects.  Using the `XRFrame.getPose()` function, developers can create an `XRRay` representing the `origin` and `direction` of the user's intent. The `origin` represents a 3D coordinate in space with a `w` component that must be 1, and the `direction` represents a normalized 3D directional vector with a `w` component that must be 0. Both values are given as `DOMPointReadOnly`s. The `XRRay`'s `matrix` represents the transform from a ray originating at `[0, 0, 0]` and extending down the negative Z axis to the ray described by the `XRRay`'s `origin` and `direction`. This is useful for positioning graphical representations of the ray.
-
-```js
-function updateScene(timestamp, xrFrame) {
-  // Scene update logic ...
-
-  let hitTestSourcePose = frame.getPose(preferredInputSource, xrReferenceSpace);
-  if (hitTestSourcePose) {
-    // Invoke the example 3D engine to compute the virtual hit test
-    var virtualHitTestResult = scene.virtualHitTest(new XRRay(hitTestSourcePose.transform));
-  }
-
-  // Other scene update logic ...
-}
-```
-
-### Real-world hit testing
-A key challenge with enabling real-world hit testing in WebXR is that computing real-world hit test results can be performance-impacting and dependant on secondary threads in many of the underlying implementations.  However from a developer perspective, out-of-date asynchronous hit test results are often, though not always, less than useful. 
-
-WebXR addresses this challenge through the use of the `XRHitTestSource` type which acts somewhat like a subscription mechanism. The presence of an `XRHitTestSource` signals to the user agent that the developer intends to query `XRHitTestResult`s in subsequent `XRFrame`s.  The user agent can then precompute `XRHitTestResult`s based on the `XRHitTestSource` properties such that each `XRFrame` will be bundled with all "subscribed" hit test results. When the last reference to the `XRHitTestResult` has been released, the user agent is free to stop computing `XRHitTestResult`s for future frames.
-
-#### Requesting a hit test source
-To create an `XRHitTestSource` developers call the `XRSession.requestHitTestSource()` function.  This function accepts an `XRHitTestOptionsInit` dictionary with the following values:
-* The `space` is required and is the `XRSpace` to be tracked by the hit test source.
-* The `offsetRay` is optional and is the `XRRay` from which the hit test should be performed. This ray is defined relative to the `space`. If an `offsetRay` is not provided, the default is an `XRRay` with a forward direction and an origin coincident with the `space` origin.
-
->**QUESTION** Should we leave out the `featureType` for the first PR?  If so, I'll need to change the grab-and-drag sample.
-
->**TODO** figure out how to know hand-held vs. head-worn and show this sample based on that
-
-In this example, an `XRHitTestSource` is created slightly above the center of the `viewerSpace`. This is because the developer has chosen to leave space for buttons along the bottom of the hand-held AR device screen while still giving the perception of a centered cursor (see [Rendering cursors and highlights](#Rendering-cursors-and-highlights)
-
-```js
-let viewerHitTestSource = null;
-
-let hitTestOptions = { space:xrSession.viewerSpace, offsetRay:new XRRay({ origin: {y: 0.5} }) };
-xrSession.requestHitTestSource(hitTestOptions).then((hitTestSource) => {
-  viewerHitTestSource = hitTestSource;
-});
-```
-
-#### Automatic hit test source creation
-While asynchronous hit test source creation is useful for a number of scenarios, it is problematic for [transient input sources](#Transient-Input-Sources).  If an `XRHitTestSource` is requested in response to the `inputsourceschange` event, it may be several frames before the new hit test source is able to provide hit test results. By which time the input source may no longer exist.
-
-To mitigate this difficulty, for each new `XRInputSource` user agents must automatically generate an `XRHitTestSource` to be retrievable by the `XRInputSourcesChangeEvent.getHitTestSource()` function.  When passed an `XRInputSource` from the `XRInputSourcesChangeEvent.added` attribute, the pre-generated `XRHitTestSource` will be returned.  Any other parameter will return throw a `DOMException`. It's worth noting that, as mentioned above, each active `XRHitTestSource` may have a negative performance impact.  Therefore instead of an implicit binding of `XRHitTestSource` objects to the lifetime of `XRInputSource` objects, developers must explicitly choose to retain the `XRHitTestSource` if they wish to use it. Otherwise, at the end of the `inputsourceschange` callbacks the pre-created hit test source will disappear.
-
-```js
-let hitTestSources = {};
-
-function onInputSourcesChange(event) {
-  xrInputSources = event.session.getInputSources();
-
-  foreach (inputSource of event.removed) {
-    delete hitTestSources[inputSource];
-  }
-
-  foreach (inputSource of event.added)
-    hitTestSources[inputSource] = event.getHitTestSource(inputSource);
-  }
-
-  updatePreferredInputSource();
-}
-```
-
-#### Hit test results
-Using an `XRHitTestSource`, the developer can get synchronous hit test results on each frame. This is done by 
-
-```js
-function updateScene(timestamp, xrFrame) {
-  // Scene update logic ...
-
-  let hitTestResults = xrFrame.getHitTestResults(hitTestSources[preferredInputSource], xrReferenceSpace);
-
-  // Other scene update logic ...
-}
-```
-
-On occasion, developers may want hit test results for the current frame even if they have not already created an `XRHitTestSource` to subscribe to the results. For example, when a virtual object needs to bounce off a real-world surface, a single hit-test result can be requested.  The result will be delivered asynchronously, though it will be accurate for the frame on which it was requested.
-
-```js
-function updateScene(timestamp, xrFrame) {
-  // Scene update logic ...
-
-  xrFrame.requestHitTestResults(hitTestSources[preferredInputSource], xrReferenceSpace).then((results) => {
-    // do something with results
-  });
-
-  // Other scene update logic ...
-}
-```
-
-### Combining virtual and real-world hit testing
-A key component to creating realistic presence in XR experiences, relies on the ability to know if a hit test intersects virtual or real-world geometry first. For example, a virtual button should be "clicked" if the user selects it, but not if there's a physical object in the way. There are a handful to different techniques which can be used to determine a combined hit test result that take into account a user's previous actions.  For example, a developer may choose to weight hit test results differently if a user is already interacting with a particular object. 
-
-For the purposes of this explainer, a simple example of combining hit test results is provided below.  This sample compares the first real-world hit test result (real-world hit-test results are returned closest to farthest in the array) to the virtual hit test result and returns the one closest to the origin of the hit-test request.
-
-```js
-function updateScene(timestamp, xrFrame) {
-  // Scene update logic ...
-
-  let hitTestResult = getHitCombinedHitTestResult(xrFrame);
-
-  // Other scene update logic ...
-}
-
-function getHitCombinedHitTestResult(frame, inputSource, hitTestSource) {
-  let combinedResult = {};
-
-  let viewerPose = frame.getViewerPose(xrReferenceSpace);
-  if (!viewerPose)
-    return;
-
-  if (hitTestSource) {
-    var realHitTestResults = frame.getHitTestResults(hitTestSource, xrReferenceSpace);
-  }
-
-  if (inputSource) {
-    let inputSourcePose = frame.getPose(inputSource.source, xrReferenceSpace);
-    if (inputSourcePose) {
-      var virtualHitTestResult = scene.virtualHitTest(new XRRay(inputSource.transform));
-    }
-  }
-
-  // Explain that this is a grossly simplified way of determining which hit test result to use
-  let isVirtualCloser = false;
-  if (virtualHitTestResult && realHitTestResults[0]) {
-    let virtualDistance = MatrixMathLibrary.distance(viewerPose.transform, virtualHitTestResult.transform);
-    let realDistance = MatrixMathLibrary.distance(viewerPose.transform, realHitTestResults[0].transform);
-    isVirtualCloser = (virtualDistance < realDistance);
-  } else if (virtualHitTestResult) {
-    isVirtualCloser = true;
-  }
-  
-  combinedResult["result"] = (isVirtualCloser) ? virtualHitTestResult : realHitTestResults[0];
-  combinedResult["virtualTarget"] = (isVirtualCloser) ? virtualHitTestResult.target : null;
-
-  return combinedResult;
-}
-```
-
-### Grab-and-Drag
-Another common operation in XR experiences is grabbing a virtual object and moving it to a new location. There are a number of ways to accomplish this experience, and a simple example is provided below to illustrate on approach to doing so with the WebXR apis.
-
-The first step in the grab-and-drag operation is the "grab" step and is done in response to the `selectstart` event. If a draggable virtual object is hit by the `preferredInputSource`, the drag operation is begun by saving the data necessary for the next steps and giving the object a highlight that indicates it is being dragged.  Additionally, a new `XRHitTestSource` is created based on the `preferredInputSource` to ensure that the draggable object is only placed on horizontal real-world surfaces.
-
-```js
-let activeDragInteraction = null;
-
-function onSelectStart(event) {
-  // Select start logic ...
-
-  // Ignore the event if we are already dragging
-  if (!activeDragInteraction) {
-    
-    // Update the preferred input source to be the last one the user interacted with
-    preferredInputSource = event.inputSource;
-
-    // Use the input's hitTestSource to find a draggable object in the scene
-    let combinedHitTestResult = getHitCombinedHitTestResult(event.frame, 
-                                                            preferredInputSource, 
-                                                            hitTestSources[preferredInputSource]);
-
-    // The virtualTarget object isn't part of the WebXR API.  It is
-    // something set by the imaginary 3D engine in this example
-    let virtualTarget = combinedHitTestResult["virtualTarget"];
-
-    if (virtualTarget && virtualTarget.isDraggable) {
-      activeDragInteraction = {
-        inputSource: inputSource,
-        target: virtualTarget,
-        initialTargetTransform: virtualTarget.transform,
-        initialHitTestResult: combinedHitTestResult["result"]
-      };
-
-      // Change the hit-testing to look for a horizontal plane
-      let hitTestOptions = { space:preferredInputSource, featureType:"horizontal-plane" };
-      xrSession.requestHitTestSource(hitTestOptions).then((hitTestSource) => {
-        activeDragInteraction.hitTestSource = hitTestSource;
-      });
-
-      // Use imaginary 3D engine to indicate active drag object
-      scene.addDragIndication(activeDragInteraction.target);
-    }
-  }
-
-  // Other select start logic ...
-}
-```
-
-On each frame, the location of the virtual object being dragged is updated so that it slides along virtual and real-world geometry as the user aims with their input source.
-
-```js
-function updateScene() {
-  // Scene update logic ...
-
-  if (activeDragInteraction) {
-    let inputSource = activeDragInteraction.inputSource;
-    let hitTestSource = activeDragInteraction.hitTestSource;
-    let combinedHitTestResult = getHitCombinedHitTestResult(event.frame, inputSource, hitTestSource);
-    if (combinedHitTestResult["result"]) {
-      activeDragInteraction.target.setTransform(combinedHitTestResult.transform);
-    }
-  }
-
-  // Other scene update logic ...
-}
-```
-
-When the user releases the "select" gesture, the drag event is completed and the sample double checks that the virtual object will fit at the new location.
-
->**TODO** This is where I'll update to put the anchor sample when we're ready to include it
-
-```js
-function onSelectEnd(event) {
-  // Only end the drag when the input source that started dragging releases the select action
-  if (activeDragInteraction && event.inputSource == activeDragInteraction.inputSource) {
-
-    let combinedHitTestResult = getHitCombinedHitTestResult(event.frame, 
-                                                            activeDragInteraction.inputSource, 
-                                                            activeDragInteraction.hitTestSource);
-    if (combinedHitTestResult["result"]) {
-      let target = activeDragInteraction.target;
-      let result = combinedHitTestResult["result"];
-
-      // Check if the object being dragged can fit at the requested 
-      // destination by comparing the bounds to the imaginary 3D engine's 
-      // target.footprint 
-      if (MatrixMathLibrary.contains(result.bounds, target.footprint)) {
-        target.setTransform(result.transform);
-      } else {
-        target.setTransform(initialTargetTransform.transform);
-      }
-    }
-
-    activeDragInteraction = null;
-  }
-}
-```
-
 ## Rendering Input
-When rendering an XR scene, it is often useful for users to have visual representations of their input sources and targeting hints.  The mechanisims for displaying this information are often categorized as follows:
-* **Cursor** indicates the intersection with virtual or real geometry that an `XRHitTestSource` is aimed at
-* **Highlight** changed properties of a virtual object to indicate a hit test source it aimed at it
-* **Virtual model** a virtual representation of a physical `XRInputSource`
-* **Pointing ray** a ray from the origin of an `XRHitTestSource.space` that terminates at the intersection with virtual or real geometry
+When rendering an XR scene, it is often useful for users to have visual representations of their input sources and visual aiming hints. The mechanisms for displaying this information are often categorized as follows:
+* **Highlight** a change in a virtual object's visualization that indicates it is being aimed at
+* **Cursor** a mark at the intersection point of an input source's aiming ray with 3D geometry
+* **Pointing ray** a line drawn from the origin of an `XRInputSource` that terminates at the intersection with virtual or real geometry
+* **Renderable model** a renderable virtual representation of a physical `XRInputSource`
 
 The appropriateness of using these visualizations depends on various factors, including the value of the input source's `inputMode`.  
 
-|                   | Cursor | Highlight | Virtual Model   | Pointing Ray |
-| ------------------| ------ | --------- | --------------  | ------------ |
-| `gaze`            | √      | √         | X               | X            |
-| `tracked-pointer` | √      | √         | √ (if possible) | √            |
-| `screen`          | X      | √         | X               | X            |
+|                   | Highlight | Cursor | Pointing Ray | Renderable Model |
+| ------------------| --------- | ------ | ------------ | ---------------- |
+| `screen`          | √         | X      | X            | X                |
+| `gaze`            | √         | √      | X            | X                |
+| `tracked-pointer` | √         | √      | √            | √ (if possible)  |
 
-As indicated in the table above, `gaze` style input sources should not draw a pointing ray.  This is because the ray's origin would be located between the user's eyes and may obscure the user's vision or be difficult to visually converge on.  Additionally, `screen` style inputs should only use highlights as the user's fingers will obscure  other visualizations. Lastly, developers should only attempt to render a virtual model for `tracked-pointer` input sources.  For further explanation, see the [Loading renderable models](#Loading-renderable-models) section.
+As indicated in the table above, `screen` style inputs should only use highlights as the user's fingers will obscure other visualizations. Additionally, `gaze` style input sources should not draw a pointing ray because the ray's origin would be located between the user's eyes and may obscure the user's vision or be difficult to visually converge on. Lastly, only `tracked-pointer` should only attempt to draw renderable models and pointing rays for `tracked-pointer` input sources. For further explanation on that topic, see the [Renderable models](#Renderable-models) section.
+
+### Visualizing aiming hints
+
+In order to draw aiming hints such as cursors, highlights, and pointing rays, a hit test must be performed against the 3D geometry to find what the user is aiming at.  There are two types of hit testing: virtual and real-world. The sample code in this explainer will focus on virtual hit testing. For more information on real-world hit testing and how to combine it with virtual hit testing, see [hit testing](environmental-awareness-explainer.md#Hit-testing) section of the [environmental awareness explainer](environmental-awareness-explainer.md).
+
+WebXR does not have any knowledge of the developer's 3D scene graph, but does have information about the real-world location of `XRInputSource` objects.  Using the `XRFrame.getPose()` function, as described in [Aiming ray pose](#Aiming-ray-pose), developers can determine position and orientation of the `XRInputSource`'s aiming ray and pass it into their 3D engine's virtual hit test function. Developers should take care to check the result from `getPose()` as it may return `null` in cases where tracking has been lost or the `XRSpace`'s `XRInputSource` instance is no longer connected or available.
 
 ```js
 function updateScene(timestamp, xrFrame) {
   // Scene update logic ...
 
-  let combinedHitTestResult = getHitCombinedHitTestResult(xrFrame,
-                                                          preferredInputSource,
-                                                          hitTestSources[preferredInputSource]);
+  let inputSourcePose = xrFrame.getPose(preferredInputSource, xrReferenceSpace);
+  if (inputSourcePose) {
+    // Invoke the example 3D engine to compute a virtual hit test
+    var virtualHitTestResult = scene.virtualHitTest(new XRRay(inputSourcePose.transform));
+  }
 
-  let hitTestResult = combinedHitTestResult["result"];
-  updateCursor(hitTestResult);
-  updateHighlight(hitTestResult);
-  updateVirtualInputModels();
-  updatePointingRay(hitTestResult);
+  updateCursor(virtualHitTestResult);
+  updateHighlight(virtualHitTestResult);
+  updateRenderableInputModels(xrFrame);
+  updatePointingRay(inputSourcePose, virtualHitTestResult);
   
   // Other scene update logic ...
 }
 ```
 
-### Cursors and highlights
-In the sample code below, the cursor is turned on for all non-screen based input sources and positioned based on the hit-test result.  If the hit test result is a virtual object, a highlight is added to the object. This sample also disables these visualization during drag operations as the object being dragged would obscure the cursor and a different highlight is used.  
+#### Cursors
+In the sample code below, a cursor is positioned based on the virtual hit-test result from the 3D engine's `preferredInputSource`. If an intersection doesn't exist or the `preferredInputSource` is `screen` based, the cursor is hidden.
 
 ```js
-function updateCursor(hitTestResult) {
+function updateCursor(virtualHitTestResult) {
   // Toggle the cursor in the imaginary 3D engine
-  if (!hitTestResult || preferredInputSource.inputMode == "screen" || activeDragInteraction) {
+  if (!virtualHitTestResult || preferredInputSource.inputMode == "screen") {
     scene.cursor.visible = false;
   } else {
     scene.cursor.visible = true;
-    scene.cursor.setTransform(hitTestResult.transform);
-  }
-}
-
-function updateTargetHighlight(hitTestResult) {
-  // The virtualTarget object isn't part of the WebXR API.  It is
-  // something set by the imaginary 3D engine in this example
-  if (hitTestResult && hitTestResult.virtualTarget && !activeDragInteraction) {
-    scene.addTargetIndication(hitTestResult.virtualTarget);
+    scene.cursor.setTransform(virtualHitTestResult.transform);
   }
 }
 ```
 
-### Loading renderable models
+### Highlights
+In the sample code below, if a virtual object was intersected by the virtual hit test it is decorated with a highlight.
+
+```js
+function updateTargetHighlight(virtualHitTestResult) {
+  // The virtualTarget object isn't part of the WebXR API.  It is
+  // something set by the imaginary 3D engine in this example
+  if (virtualHitTestResult && virtualHitTestResult.objectHit) {
+    scene.addHighlight(virtualHitTestResult.objectHit);
+  }
+}
+```
+
+### Pointing rays
+In the sample below, a pointing ray is drawn for `XRInputSource` objects with the `inputMode` of 'tracked-pointer'.  The ray starts at the origin of the `XRInputSource`'s inherited `XRSpace` and terminates at the point of intersection with the 3D geometry, if one is available.  If no intersection is found, a default ray length is used.
+
+```js
+function updatePointingRay(inputSourcePose, virtualHitTestResult) {
+  // Toggle the pointing ray in the imaginary 3D engine
+  if (!inputSourcePose || preferredInputSource.inputMode != "tracked-pointer") {
+    scene.pointingRay.visible = false;
+  } else {
+    scene.pointingRay.visible = true;
+    scene.pointingRay.setTransform(inputSourcePose.transform);
+    if (virtualHitTestResult) {
+      scene.pointingRay.length = MatrixMathLibrary.distance(inputSourcePose.transform, virtualHitTestResult.transform);
+    } else {
+      scene.pointingRay.length = scene.pointingRay.defaultLength;
+    }
+  }
+}
+```
+
+### Renderable models
 For `tracked-controller` input sources, it is often appropriate for the application to render a contextually appropriate model (such as a racket in a tennis game), in which case the physical appearance of the input source doesn't matter much. Many other times, though, it's desirable for the application to display a device that matches what the user is holding, especially when relaying instructions about it's use. Finally there are times when it's best to not render anything at all, such as when the XR device uses a transparent display and the user can see their hands and/or any tracked devices without app assistance. See [Handling non-opaque displays](explainer.md#Handling-non-opaque-displays) in the main explainer for more details.
+
+#### Loading the renderable model
 
 The `XRInputSource.renderId` is used to determine what should be rendered in the cases when an application specific model isn't being used.
 
@@ -431,10 +229,11 @@ The `XRInputSource.renderId` is used to determine what should be rendered in the
 * Otherwise the renderId should be a lower-case string that describes the physical input source. It should not include and indication of the handedness of the input source, as that should be implied by the handedness attribute.
   * If the input source is a tracked hand without any held controller, the renderId MUST be 'hand'
   * For most controllers this should ideally be of the format <vendor>-<product-id>. For example: oculus-touch. UAs should make an effort to align on the strings that are returned for any given device.
-  * TODO: A canonical list of known input devices and their established `renderId`s should be created within this repo.
 * Inline sessions MUST only expose renderIds of '' or 'unknown'.
 
 The WebXR Device API currently does not offer any way to retrieve renderable resources that represent the input devices from the API itself, and as such the `renderId` must be used as a key to load an appropriate resources from the application's server or a CDN. The example below presumes that the sample `getControllerMesh()` call would do the required lookup.
+
+>**TODO** A canonical list of known input devices and their established `renderId`s should be created within this repo.
 
 ```js
 function onInputSourceChanged(event) {
@@ -456,49 +255,25 @@ function onInputSourceChanged(event) {
 }
 ```
 
-### Grip space
-A virtual model can only be rendered if the input source has a non-null `gripSpace`.  The `gripSpace` is an `XRSpace` where, if the user was holding a straight rod in their hand, it would be aligned with the negative Z axis (forward) and the origin rests at their palm. This enables developers to properly render a virtual object held in the user's hand. For example, a sword would be positioned so that the blade points directly down the negative Z axis and the center of the handle is at the origin. As mentioned in the [Tracked Pointer](#Tracked-pointer) section, the `gripSpace` is not the same as the `XRSpace` intrinsic to the `XRInputSource`.  The `gripSpace` will be `null` if the input source isn't trackable.
+#### Placing renderable models
+The `XRInputSource`'s intrinsic `XRSpace` should not be used to place the renderable model of a 'tracked-pointer'.  Instead, 'tracked-pointer' input sources will have a non-null `gripSpace` which should be used instead.  The `gripSpace` is an `XRSpace` where, if the user was holding a straight rod in their hand, it would be aligned with the negative Z axis (forward) and the origin rests at their palm. In many cases this will be different from the aiming ray defined by the `XRInputSource`'s intrinsic `XRSpace` such as on a motion controller with a tip angled slightly downward for comfort.
 
-On each frame the pose associated with the `gripSpace` should be retrieved by calling `XRFrame.getPose()` and providing the `XRSpace` the pose should be reported in.  Typically, this will be the `XRReferenceSpace` used to retrieve the `XRViewerPose`, but it is not restricted as such. Just like `getViewerPose()`, `getPose()` may return `null` in cases where tracking has been lost, or the `XRSpace`'s `XRInputSource` instance is no longer connected or available.
+Using the `gripSpace` developers can properly render a virtual object held in the user's hand. This could be the motion controller retrieved in the [previous section](#Loading-the-renderable-model) or something else like a virtual sword positioned so that the blade points directly down the negative Z axis and the center of the handle is at the origin.
+
+Similar to the description in the [Aiming ray pose](#Aiming-ray-pose) section, developers should pass their `gripSpace` to `XRFrame.getPose()` each frame for updated location information. Developers should take care to check the result from `getPose()` as it may return `null` in cases where tracking has been lost or the `XRSpace`'s `XRInputSource` instance is no longer connected or available.
 
 ```js
-function updateVirtualInputSources() {
-  // Scene update logic ...
-
-  foreach(inputSource of scene.inputObjects.keys) {
-    if(inputSource.gripSource) {
-      let pose = frame.getPose(inputSource.gripSpace, xrReferenceFrame);
-      let inputObject = scene.inputSources[inputSource];
+function updateRenderableInputModels(xrFrame) {
+  foreach(inputObject of scene.inputObjects) {
+    let xrInputSource = inputObject.xrInputSource;
+    if(xrInputSource.gripSource) {
+      let pose = xrFrame.getPose(xrInputSource.gripSpace, xrReferenceFrame);
       if (pose) {
         inputObject.setTransform(pose.transform);
         inputObject.visible = true;
       } else {
         inputObject.visible = false;
       }
-    }
-  }
-
-  // Other scene update logic ...
-}
-```
-
-### Pointing rays
-Pointing rays should be drawn only for `XRInputSource` objects with the `inputMode` of 'tracked-pointer'.  The ray should start at the origin of the `XRInputSource`'s inherited `XRSpace` and terminate at the point of intersection if one is available.  If no hit test result is found, a default ray length should be used. It is often desirable to display a pointing ray for only the preferred input source and to disable the pointing ray during a drag interaction.
-
-```js
-function updatePointingRay(hitTestResult) {
-  let pose = frame.getPose(preferredInputSource, xrReferenceFrame);
-
-  // Toggle the pointing ray in the imaginary 3D engine
-  if (!pose || preferredInputSource.inputMode != "tracked-pointer" || activeDragInteraction) {
-    scene.pointingRay.visible = false;
-  } else {
-    scene.pointingRay.visible = true;
-    scene.pointingRay.setTransform(pose.transform);
-    if (hitTestResult) {
-      scene.pointingRay.length = MatrixMathLibrary.distance(hitTestResult.transform, hitTestResult.transform);
-    } else {
-      scene.pointingRay.length = scene.pointingRay.defaultLength;
     }
   }
 }
@@ -512,10 +287,6 @@ This is a partial IDL and is considered additive to the core IDL found in the ma
 //
 
 partial interface XRSession {
-  readonly attribute XRSpace viewerSpace;
-
-  Promise<XRHitTestSource> requestHitTestSource(XRHitTestOptionsInit options);
-
   FrozenArray<XRInputSource> getInputSources();
   
   attribute EventHandler onselect;
@@ -525,30 +296,8 @@ partial interface XRSession {
 };
 
 //
-// Frame
-//
-
-partial interface XRFrame {
-  // Also listed in the spatial-tracking-explainer.md
-  XRViewerPose? getViewerPose(optional XRReferenceSpace referenceSpace);
-  XRPose? getPose(XRSpace space, XRSpace relativeTo);
-
-  FrozenArray<XRHitTestResult> getHitTestResults(XRHitTestSource hitTestSource, optional XRSpace relativeTo);
-  Promise<FrozenArray<XRHitTestResult>> requestAsyncHitTestResults(XRHitTestOptionsInit options, optional XRSpace relativeTo);
-};
-
-//
 // Input
 //
-
-[SecureContext, Exposed=Window,
- Constructor(optional DOMPointInit origin, optional DOMPointInit direction),
- Constructor(XRRigidTransform transform)]
-interface XRRay {
-  readonly attribute DOMPointReadOnly origin;
-  readonly attribute DOMPointReadOnly direction;
-  readonly attribute Float32Array matrix;
-};
 
 enum XRInputMode {
   "gaze",
@@ -570,41 +319,6 @@ interface XRInputSource : XRSpace {
 };
 
 //
-// Hit Testing
-//
-
-enum XREnvironmentFeatureType {
-  "point",
-  "vertical-plane",
-  "horizontal-plane",
-};
-
-dictionary XRHitTestOptionsInit {
-  required XRSpace space;
-  XRRay offsetRay = new XRRay();
-  XREnvironmentFeatureType featureType = "point"; 
-};
-
-[SecureContext, Exposed=Window]
-interface XRHitTestOptions {
-  readonly attribute XRSpace space;
-  readonly attributeXRRay offsetRay = new XRRay();
-  readonly attribute XREnvironmentFeatureType featureType; 
-};
-
-[SecureContext, Exposed=Window]
-interface XRHitTestSource {
-  readonly attribute XRHitTestOptions hitTestOptions;
-};
-
-[SecureContext, Exposed=Window]
-interface XRHitTestResult {
-  readonly attribute XRHitTestOptions hitTestOptions;
-  readonly attribute XRRigidTransform transform;
-  readonly attribute FrozenArray<DOMPointReadOnly>? boundsGeometry;
-};
-
-//
 // Events
 //
 
@@ -622,14 +336,12 @@ interface XRInputSourceChangeEvent : Event {
   readonly attribute XRSession session;
   readonly attribute FrozenArray<XRInputSource> removed;
   readonly attribute FrozenArray<XRInputSource> added;
-  XRHitTestSource getHitTestSource(XRInputSource inputSource);
 };
 
 dictionary XRInputSourceChangeEventInit : EventInit {
   required XRSession session;
   required FrozenArray<XRInputSource> removedInputSources;
   required FrozenArray<XRInputSource> addedInputSources;
-  required FrozenArray<XRHitTestSource> addedHitTestSource;
 };
 
 [SecureContext, Exposed=Window,

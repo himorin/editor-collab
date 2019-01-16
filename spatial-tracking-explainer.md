@@ -1,5 +1,5 @@
 # WebXR Device API - Spatial Tracking
-This document is a subsection of the main WebXR Device API explainer document which can be found [here](explainer.md).  The main explainer contains all the information you could possibly want to know about setting up a WebXR session, the render loop, and more.  In contrast, this document covers the technology and APIs for tracking users' movement for a stable, comfortable, and predictable experience that works on the widest range of XR hardware.
+This document explains the technology and portion of the WebXR APIs used to track users' movement for a stable, comfortable, and predictable experience that works on the widest range of XR hardware. For context, it may be helpful to have first read about [WebXR session establishment](explainer.md), and [input mechanisms](input-explainer.md). Further information can also be found in the [environmental awareness explainer](environmental-awareness-explainer.md).
 
 ## Introduction
 A big differentiating aspect of XR, as opposed to standard 3D rendering, is that users control the view of the experience via their body motion.  To make this possible, XR hardware needs to be capable of tracking the user's motion in 3D space.  Within the XR ecosystem there is a wide range of hardware form factors and capabilities which have historically only been available to developers through device-specific SDKs and app platforms. To ship software in a specific app store, developers optimize their experiences for specific VR hardware (HTC Vive, GearVR, Mirage Solo, etc) or AR hardware (HoloLens, ARKit, ARCore, etc).  WebXR  development is fundamentally different in that regard; the Web gives developers broader reach, with the consequence that they no longer have predictability about the capability of the hardware their experiences will be running on.
@@ -90,12 +90,6 @@ function onSessionStarted(session) {
 ```
 
 There is no mechanism for getting a floor-relative _unbounded_ reference space. This is because the user may move through a variety of elevations (via stairs, hills, etc), making identification of a single floor plane impossible.
-
-> **An aside regarding XRSpace**
->
-> When building an _unbounded_ experience, developers will likely need to "lock" content to a specific physical location to prevent it from drifting as users travel beyond a few meters; this functionality is known as _anchors_.  In addition to _anchors_, today's XR platforms offer other environment-related features such as _spatial meshes_, _point clouds_, _markers_, and more. While none of these features are yet part of the WebXR Device API, there are proposed designs under active development.
->
-> The common property of these additional features and `XRReferenceSpace`, is that they all act as _spatial roots_ that are independently tracked by the underlying tracking systems. The concept of a _spatial roots_ is represented in the WebXR Device API as an `XRSpace`.  Each instance of an `XRSpace` does not have a fixed relationship with any other.  Instead, on a frame-by-frame basis, the tracking systems must attempt to locate them and compute their relative locations.  
 
 ### Stationary Reference Space
 A _stationary_ experience is one which does not require the user to move around in space.  This includes several categories of experiences that developers are commonly building today.  "Standing" experiences can be created by passing the `floor-level` subtype.  "Seated" experiences can be created by passing the `eye-level` subtype.  Orientation-only experiences such as 360 photo/video viewers can be created by passing the `position-disabled` subtype.
@@ -219,6 +213,18 @@ function onSessionStarted(session) {
 }
 ```
 
+### XRSpace
+> **TODO** Fix this section to properly explain what an `XRSpace` is and how to use it. Incorporate this text from above:
+
+Additionally, when building an _unbounded_ experience, developers will likely need to "lock" content to a specific physical location to prevent it from drifting as users travel beyond a few meters; this functionality is known as _anchors_. In addition to _anchors_, today's XR platforms offer other environment-related features such as _spatial meshes_, _point clouds_, _markers_, and more. While none of these features are yet part of the WebXR Device API, there are proposed designs under active development. 
+
+The common property of these additional features and `XRReferenceSpace`, is that they all act as _spatial roots_ that are independently tracked by the underlying tracking systems. The concept of a _spatial roots_ is represented in the WebXR Device API as an `XRSpace`.  Each instance of an `XRSpace` does not have a fixed relationship with any other.  Instead, on a frame-by-frame basis, the tracking systems must attempt to locate them and compute their relative locations.  
+
+> **TODO** Show sample code that's better than this
+```js
+  let hitTestSourcePose = frame.getPose(preferredInputSource, xrReferenceSpace);
+```
+
 ## Practical Usage Guidelines
 
 ### Inline Sessions
@@ -335,6 +341,9 @@ Example reasons `onreset` may fire:
 
 The `onreset` event will **NOT** fire as an `XRUnboundedReferenceSpace` makes small changes to its origin as part of maintaining space stability near the user; these are considered minor corrections rather than a discontinuity in the origin.
 
+### Viewer space
+>**TODO** add an explanation of the `XRSession.viewerSpace`
+
 ## Appendix A : Miscellaneous
 
 ### Tracking Systems Overview
@@ -392,6 +401,9 @@ partial dictionary XRSessionCreationOptions {
 };
 
 partial interface XRSession {
+  // Also listed in the environment-awareness-explainer.md
+  readonly attribute XRSpace viewerSpace;
+
   Promise<XRReferenceSpace> requestReferenceSpace(Array<XRReferenceSpaceOptions> preferredOptions);
 };
 
