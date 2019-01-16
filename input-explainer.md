@@ -1,5 +1,5 @@
 # WebXR Device API - Input
-This document explains the portion of the WebXR APIs for managing input across the range of XR hardware. For context, it may be helpful to have first read about [WebXR session establishment](explainer.md) and [spatial tracking](spatial-tracking-explainer.md). Further information can also be found in the [environmental awareness explainer](environmental-awareness-explainer.md).
+This document explains the portion of the WebXR APIs for managing input across the range of XR hardware. For context, it may be helpful to have first read about [WebXR Session Establishment](explainer.md) and [Spatial Tracking](spatial-tracking-explainer.md). Further information can also be found in the [Hit Testing Explainer](hit-testing-explainer.md).
 
 ## Concepts
 In addition to the diversity of tracking and display technology, XR hardware may support a wide variety of input mechanisms including screen taps, motion controllers (with multiple buttons, joysticks, triggers, touchpads, etc), voice commands, spatially-tracked articulated hands, single button clickers, and more.  Despite this variation, all XR input mechanisms have a common purpose: enabling users to aim in 3D space and perform an action on the target of that aim. This concept is known as "aim and select" and is the foundation for how input is exposed in WebXR.
