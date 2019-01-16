@@ -340,8 +340,8 @@ interface XRInputSourceChangeEvent : Event {
 
 dictionary XRInputSourceChangeEventInit : EventInit {
   required XRSession session;
-  required FrozenArray<XRInputSource> removedInputSources;
-  required FrozenArray<XRInputSource> addedInputSources;
+  required FrozenArray<XRInputSource> removed;
+  required FrozenArray<XRInputSource> added;
 };
 
 [SecureContext, Exposed=Window,

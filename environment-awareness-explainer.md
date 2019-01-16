@@ -1,3 +1,4 @@
+# RENAME ME TO HIT TESTING EXPLAINER
 # WebXR Device API - Environment awareness
 This document explains the portion of the WebXR APIs that give developers access to environmental awareness. For context, it may be helpful to have first read about [WebXR session establishment](explainer.md), [spatial tracking](spatial-tracking-explainer.md), and [input mechanisms](input-explainer.md).
 
@@ -90,7 +91,7 @@ On occasion, developers may want hit test results for the current frame even if 
 function updateScene(timestamp, xrFrame) {
   // Scene update logic ...
 
-  xrFrame.requestHitTestResults(hitTestSources[preferredInputSource], xrReferenceSpace).then((results) => {
+  xrFrame.requestAsyncHitTestResults(hitTestSources[preferredInputSource], xrReferenceSpace).then((results) => {
     // do something with results
   });
 
@@ -254,9 +255,6 @@ This is a partial IDL and is considered additive to the core IDL found in the ma
 //
 
 partial interface XRSession {
-  // Also listed in the spatial-tracking-explainer.md
-  readonly attribute XRSpace viewerSpace;
-
   Promise<XRHitTestSource> requestHitTestSource(XRHitTestOptionsInit options);
 
   // Also listed in the input-explainer.md

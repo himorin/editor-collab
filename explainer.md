@@ -264,9 +264,7 @@ function drawScene(view) {
 }
 ```
 
-The `XRViewerPose` also contains a `transform`, which is an `XRRigidTransform` describing the position and orientation of the viewer as a whole relative to the `XRReferenceSpace` origin. This is primarily useful for rendering a visual representation of the viewer for spectator views or multi-user environments. Each `XRView` has a `transform` as well that can be used in lieu of the `viewMatrix` to position virtual cameras in the scene if the rendering library being used prefers.
-
-An `XRRigidTransform` contains a `position` vector and `orientation` quaternion. When interpreting an `XRRigidTransform` the `orientation` is applied prior to the `position`. This means that, for example, a transform that indicates a quarter rotation to the right and a 1 meter translation along -Z would place a transformed object at `[0, 0, -1]` facing to the right. `XRRigidTransform`s also have a `matrix` attribute that reports the same transform as a 4x4 matrix when needed.
+Because the `XRViewerPose` inherits from `XRPose` it also contains a `transform` describing the position and orientation of the viewer as a whole relative to the `XRReferenceSpace` origin. This is primarily useful for rendering a visual representation of the viewer for spectator views or multi-user environments. Each `XRView` has a `transform` as well that can be used in lieu of the `viewMatrix` to position virtual cameras in the scene if the rendering library being used prefers.  For more information on `XRRigidTransform`s, see [the spatial tracking explainer](spatial-tracking-explainer.md#Spaces,-poses,-and-transforms).
 
 ### Handling suspended sessions
 
@@ -622,42 +620,13 @@ dictionary XRRenderStateOptions {
 };
 
 //
-// Rigid Transforms and Rays
-//
-
-[SecureContext, Exposed=Window,
- Constructor(optional DOMPointInit position, optional DOMPointInit orientation)]
-interface XRRigidTransform {
-  readonly attribute DOMPointReadOnly position;
-  readonly attribute DOMPointReadOnly orientation;
-  readonly attribute Float32Array matrix;
-};
-
-[SecureContext, Exposed=Window,
- Constructor(optional DOMPointInit origin, optional DOMPointInit direction),
- Constructor(XRRigidTransform transform)]
-interface XRRay {
-  readonly attribute DOMPointReadOnly origin;
-  readonly attribute DOMPointReadOnly direction;
-  readonly attribute Float32Array matrix;
-};
-
-//
 // Frame, Device Pose, and Views
 //
 
 [SecureContext, Exposed=Window] interface XRFrame {
   readonly attribute XRSession session;
 
-  // Also listed in the spatial-tracking-explainer.md
   XRViewerPose? getViewerPose(XRReferenceSpace referenceSpace);
-  XRPose? getPose(XRSpace space, XRSpace relativeTo);
-};
-
-[SecureContext, Exposed=Window]
-interface XRPose {
-  readonly attribute XRRigidTransform transform;
-  readonly attribute boolean emulatedPosition;
 };
 
 enum XREye {

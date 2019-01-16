@@ -5,11 +5,27 @@ This document explains the technology and portion of the WebXR APIs used to trac
 A big differentiating aspect of XR, as opposed to standard 3D rendering, is that users control the view of the experience via their body motion.  To make this possible, XR hardware needs to be capable of tracking the user's motion in 3D space.  Within the XR ecosystem there is a wide range of hardware form factors and capabilities which have historically only been available to developers through device-specific SDKs and app platforms. To ship software in a specific app store, developers optimize their experiences for specific VR hardware (HTC Vive, GearVR, Mirage Solo, etc) or AR hardware (HoloLens, ARKit, ARCore, etc).  WebXR  development is fundamentally different in that regard; the Web gives developers broader reach, with the consequence that they no longer have predictability about the capability of the hardware their experiences will be running on.
 
 ## Reference Spaces
-The wide range of hardware form factors makes it impractical and unscalable to expect developers to reason directly about the tracking technology their experience will be running on.  Instead, the WebXR Device API is designed to have developers think upfront about the mobility needs of the experience they are building which is communicated to the User Agent by explicitly requesting an appropriate `XRReferenceSpace`.  The `XRReferenceSpace` object acts as a substrate for the XR experience being built by establishing guarantees about supported motion and providing a space in which developers can retrieve `XRViewerPose` and it's view matrices.  The critical aspect to note is that the User Agent (or underlying platform) is responsible for providing consistently behaved lower-capability `XRReferenceSpace` objects even when running on a higher-capability tracking system. 
+The wide range of hardware form factors makes it impractical and unscalable to expect developers to reason directly about the tracking technology their experience will be running on.  Instead, the WebXR Device API is designed to have developers think upfront about the mobility needs of the experience they are building which is communicated to the User Agent by explicitly requesting an appropriate `XRReferenceSpace`.  The `XRReferenceSpace` object acts as a substrate for the XR experience being built by establishing guarantees about supported motion and providing a space in which developers can retrieve `XRViewerPose` and its view matrices.  The critical aspect to note is that the User Agent (or underlying platform) is responsible for providing consistently behaved lower-capability `XRReferenceSpace` objects even when running on a higher-capability tracking system. 
 
 There are three types of reference spaces: `bounded`, `unbounded`, and `stationary`.  A bounded experience is one in which the user will move around their physical environment to fully interact, but will not need to travel beyond a fixed boundary defined by the XR hardware.  An unbounded experience is one in which a user is able to freely move around their physical environment and travel significant distances.  A stationary experience is one which does not require the user to move around in space, and includes "seated" or "standing" experiences.  Examples of each of these types of experiences can be found in the detailed sections below.
 
 It is worth noting that not all experiences will work on all XR hardware and not all XR hardware will support all experiences (see [Appendix A: XRReferenceSpace Availability](#xrreferencespace-availability)).  For example, it is not possible to build a experience which requires the user to walk around on a device like a GearVR.  In the spirit of [progressive enhancement](https://developer.mozilla.org/en-US/docs/Glossary/Progressive_Enhancement), it is strongly recommended that developers select the least capable `XRReferenceSpace` that suffices for the experience they are building.  Requesting a more capable reference space will artificially restrict the set of XR devices their experience will otherwise be viewable from.
+
+### Spaces, Poses, and transforms
+The base type of `XRReferenceSpace` is `XRSpace` which can roughly be thought of as something that is independently trackable in 3D space. This means that the underlying tracking system can use sensor data to continuously update and adjust its understanding of where `XRSpace` objects are actually located in the real world. Types which inherit from `XRSpace`, such as `XRReferenceSpace`, may add restrictions to when the subtype is considered locatable. That locatability is evaluated on a frame-by-frame basis by using the `XRFrame.getPose()` function.  This function takes two parameters, `space` which is the `XRSpace` to locate and `relativeTo` which defines the coordinate system in which the resulting `XRPose`. While the `relativeTo` parameter is an `XRSpace`, developers will often choose to supply a `XRReferenceSpace` as the `relativeTo` parameter so that coordinates will be consistent with those used for rendering. 
+
+Developers should always check the result from `getPose()` as it will return `null` on frames in which `space`'s location can not be determined within `relativeTo`. This may happen due to overall tracking loss, `space` or `relativeTo` not being locatable, or for other reasons.
+
+Many of today's XR platforms offer environment-related features such as _hit testing_, _anchors_, _spatial meshes_, _point clouds_, _markers_, and more. While none of these features are yet part of the WebXR Device API, it is expected that they will relate to the underlying tracking system via `XRSpace`. 
+
+```js
+  let pose = frame.getPose(xrSpace, xrReferenceSpace);
+  if (pose) {
+    // Do a thing
+  }
+```
+
+The `XRPose` type contains two attributes: the `transform` and `emulatedPosition`. The first attribute, `transform`, is an `XRRigidTransform` representing the location of `space` within `relativeTo`. `XRRigidTransform`s contain a `position` vector and `orientation` quaternion. When interpreting an `XRRigidTransform` the `orientation` is applied prior to the `position`. This means that, for example, a transform that indicates a quarter rotation to the right and a 1 meter translation along -Z would place a transformed object at `[0, 0, -1]` facing to the right. `XRRigidTransform`s also have a `matrix` attribute that reports the same transform as a 4x4 matrix when needed. The second attribute, `emulatedPosition`, indicates that the translation components of retrieved pose matrices may not be accurate. There are a number of reasons this might be the case. For example, a headset with orientation-only tracking capability may include position data to represent neck modeling. Another reason might be the underlying platform's tracking-loss behavior causes orientation data to be updated while it is unable to update position data. In these situations, the `emulatedPosition` attribute will be set to `true`.
 
 ### Bounded Reference Space
 A _bounded_ experience is one in which a user moves around their physical environment to fully interact, but will not need to travel beyond a pre-established boundary.  A _bounded_ experience is similar to a _unbounded_ experience in that both rely on XR hardware capable of tracking a users' locomotion.  However, _bounded_ experiences are explicitly focused on nearby content which allows them to target XR hardware that requires a pre-configured play area as well as XR hardware able to track location freely.
@@ -213,18 +229,6 @@ function onSessionStarted(session) {
 }
 ```
 
-### XRSpace
-> **TODO** Fix this section to properly explain what an `XRSpace` is and how to use it. Incorporate this text from above:
-
-Additionally, when building an _unbounded_ experience, developers will likely need to "lock" content to a specific physical location to prevent it from drifting as users travel beyond a few meters; this functionality is known as _anchors_. In addition to _anchors_, today's XR platforms offer other environment-related features such as _spatial meshes_, _point clouds_, _markers_, and more. While none of these features are yet part of the WebXR Device API, there are proposed designs under active development. 
-
-The common property of these additional features and `XRReferenceSpace`, is that they all act as _spatial roots_ that are independently tracked by the underlying tracking systems. The concept of a _spatial roots_ is represented in the WebXR Device API as an `XRSpace`.  Each instance of an `XRSpace` does not have a fixed relationship with any other.  Instead, on a frame-by-frame basis, the tracking systems must attempt to locate them and compute their relative locations.  
-
-> **TODO** Show sample code that's better than this
-```js
-  let hitTestSourcePose = frame.getPose(preferredInputSource, xrReferenceSpace);
-```
-
 ## Practical Usage Guidelines
 
 ### Inline Sessions
@@ -305,6 +309,16 @@ Some XR hardware with inside-out tracking has users establish "known spaces" tha
 
 Additionally, XR hardware with orientation-only tracking may also provide an emulated value for the floor offset of an `XRStationaryReferenceSpace` with the `floor-level` subtype.  On these devices, it is recommended that the User Agent or underlying platform provide a setting for users to customize this value.
 
+### Viewer space
+Calls to `XRFrame.getViewerPose()` return an `XRViewerPose` object which contains the pose of the viewer along with the views to be rendered. Sometimes it is useful to have access to the `XRSpace` represented by the viewer directly, such when the developer wants to use it to compare locations against other `XRSpace` objects.
+
+```js
+  let pose = xrFrame.getPose(preferredInputSource.gripSpace, xrSession.viewerSpace);
+  if (pose) {
+    // Calculate how far the motion controller is from the user's head
+  }
+```
+
 ### Relating between XRReferenceSpaces
 There are several circumstances in which developers may choose to relate content in different reference spaces.
 
@@ -340,9 +354,6 @@ Example reasons `onreset` may fire:
 * When the user has travelled far enough from the origin of an `XRUnboundedReferenceSpace` that floating point error would become problematic
 
 The `onreset` event will **NOT** fire as an `XRUnboundedReferenceSpace` makes small changes to its origin as part of maintaining space stability near the user; these are considered minor corrections rather than a discontinuity in the origin.
-
-### Viewer space
->**TODO** add an explanation of the `XRSession.viewerSpace`
 
 ## Appendix A : Miscellaneous
 
@@ -401,10 +412,30 @@ partial dictionary XRSessionCreationOptions {
 };
 
 partial interface XRSession {
-  // Also listed in the environment-awareness-explainer.md
   readonly attribute XRSpace viewerSpace;
 
   Promise<XRReferenceSpace> requestReferenceSpace(Array<XRReferenceSpaceOptions> preferredOptions);
+};
+
+//
+// Rigid Transforms and Rays
+//
+
+[SecureContext, Exposed=Window,
+ Constructor(optional DOMPointInit position, optional DOMPointInit orientation)]
+interface XRRigidTransform {
+  readonly attribute DOMPointReadOnly position;
+  readonly attribute DOMPointReadOnly orientation;
+  readonly attribute Float32Array matrix;
+};
+
+[SecureContext, Exposed=Window,
+ Constructor(optional DOMPointInit origin, optional DOMPointInit direction),
+ Constructor(XRRigidTransform transform)]
+interface XRRay {
+  readonly attribute DOMPointReadOnly origin;
+  readonly attribute DOMPointReadOnly direction;
+  readonly attribute Float32Array matrix;
 };
 
 //
@@ -412,8 +443,6 @@ partial interface XRSession {
 //
 
 partial interface XRFrame {
-  // Also listed in the main explainer.md
-  XRViewerPose? getViewerPose(XRReferenceSpace referenceSpace);
   XRPose? getPose(XRSpace space, XRSpace relativeTo);
 };
 
