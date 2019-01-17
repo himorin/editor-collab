@@ -87,8 +87,6 @@ function onSessionStarted(session) {
 ```
 The event's `inputSource` attribute must contain the `XRInputSource` that produced the event. The event's `frame` attribute must contain a valid `XRFrame` that can be used to query the input and device poses at the time the selection event occurred. The `XRViewerPose`'s `views` array must be empty.
 
->**QUESTION** now that we have a viewerSpace.... can we just have the getViewerPose call fail when not during a render frame?
-
 ### Transient input sources
 Some input sources are only be added to the list of input sources while an action is occurring. For example, those with an `inputMode` of `screen` or those with `inputMode` of `gaze` that are triggered by a voice command. In these cases, `XRInputSource` is only present in the array returned by `getInputSources()` during the lifetime of the action. In this circumstance, the order of events is as follows:
 1. Optionally `pointerdown`

@@ -14,10 +14,6 @@ To create an `XRHitTestSource` developers call the `XRSession.requestHitTestSour
 * The `space` is required and is the `XRSpace` to be tracked by the hit test source.
 * The `offsetRay` is optional and is the `XRRay` from which the hit test should be performed. This ray is defined relative to the `space`. If an `offsetRay` is not provided, the default is an `XRRay` with a forward direction and an origin coincident with the `space` origin.
 
->**QUESTION** Should we leave out the `featureType` for the first PR?  If so, I'll need to change the grab-and-drag sample.
-
->**TODO** figure out how to know hand-held vs. head-worn and show this sample based on that
-
 In this example, an `XRHitTestSource` is created slightly above the center of the `viewerSpace`. This is because the developer has chosen to leave space for buttons along the bottom of the hand-held AR device screen while still giving the perception of a centered cursor (see [Rendering cursors and highlights](#Rendering-cursors-and-highlights)
 
 ```js
@@ -184,8 +180,6 @@ function updateScene() {
 ```
 
 When the user releases the "select" gesture, the drag event is completed and the sample double checks that the virtual object will fit at the new location.
-
->**TODO** This is where I'll update to put the anchor sample when we're ready to include it
 
 ```js
 function onSelectEnd(event) {
