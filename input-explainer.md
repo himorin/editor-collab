@@ -1,5 +1,5 @@
 # WebXR Device API - Input
-This document explains the portion of the WebXR APIs for managing input across the range of XR hardware. For context, it may be helpful to have first read about [WebXR Session Establishment](explainer.md) and [Spatial Tracking](spatial-tracking-explainer.md). Further information can also be found in the [Hit Testing Explainer](hit-testing-explainer.md).
+This document explains the portion of the WebXR APIs for managing input across the range of XR hardware. For context, it may be helpful to have first read about [WebXR Session Establishment](explainer.md) and [Spatial Tracking](spatial-tracking-explainer.md). Further information can also be found in the [Hit Testing explainer](hit-testing-explainer.md).
 
 ## Concepts
 In addition to the diversity of tracking and display technology, XR hardware may support a wide variety of input mechanisms including screen taps, motion controllers (with multiple buttons, joysticks, triggers, touchpads, etc), voice commands, spatially-tracked articulated hands, single button clickers, and more.  Despite this variation, all XR input mechanisms have a common purpose: enabling users to aim in 3D space and perform an action on the target of that aim. This concept is known as "aim and select" and is the foundation for how input is exposed in WebXR.
@@ -146,7 +146,7 @@ As indicated in the table above, `screen` style inputs should only use highlight
 
 ### Visualizing aiming hints
 
-In order to draw aiming hints such as cursors, highlights, and pointing rays, a hit test must be performed against the 3D geometry to find what the user is aiming at.  There are two types of hit testing: virtual and real-world. The sample code in this explainer will focus on virtual hit testing. For more information on real-world hit testing and how to combine it with virtual hit testing, see [hit testing](environmental-awareness-explainer.md#Hit-testing) section of the [environmental awareness explainer](environmental-awareness-explainer.md).
+In order to draw aiming hints such as cursors, highlights, and pointing rays, a hit test must be performed against the 3D geometry to find what the user is aiming at.  There are two types of hit testing: virtual and real-world. The sample code in this explainer will focus on virtual hit testing. For more information on real-world hit testing and how to combine it with virtual hit testing, see the [Hit Testing explainer](hit-testing-explainer.md).
 
 WebXR does not have any knowledge of the developer's 3D scene graph, but does have information about the real-world location of `XRInputSource` objects.  Using the `XRFrame.getPose()` function, as described in [Aiming ray pose](#Aiming-ray-pose), developers can determine position and orientation of the `XRInputSource`'s aiming ray and pass it into their 3D engine's virtual hit test function. Developers should take care to check the result from `getPose()` as it may return `null` in cases where tracking has been lost or the `XRSpace`'s `XRInputSource` instance is no longer connected or available.
 
