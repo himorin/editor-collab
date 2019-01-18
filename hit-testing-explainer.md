@@ -125,7 +125,7 @@ function getHitCombinedHitTestResult(frame, inputSource, hitTestSource) {
 ## Grab-and-Drag
 Another common operation in XR experiences is grabbing a virtual object and moving it to a new location. There are a number of ways to accomplish this experience, and a simple example is provided below to illustrate one approach to doing so with the WebXR apis.
 
-The first step in the grab-and-drag operation is the "grab" step and is done in response to the `selectstart` event. If a draggable virtual object is hit by the `preferredInputSource`, the drag operation is begun by saving the data necessary for the next steps and giving the object a highlight that indicates it is being dragged.
+The first step in the grab-and-drag operation is the "grab" step and is done in response to the `selectstart` event. If a draggable virtual object is hit by the `preferredInputSource`, the drag operation is begun by saving the data necessary for the next steps and giving the object a highlight that indicates it is being dragged.  Additionally, a new `XRHitTestSource` is created based on the `preferredInputSource` to ensure that the draggable object is only placed on horizontal real-world surfaces.
 
 ```js
 let activeDragInteraction = null;
@@ -153,9 +153,14 @@ function onSelectStart(event) {
         inputSource: inputSource,
         target: virtualTarget,
         initialTargetTransform: virtualTarget.transform,
-        initialHitTestResult: combinedHitTestResult["result"],
-        hitTestSource = hitTestSources[preferredInputSource]
+        initialHitTestResult: combinedHitTestResult["result"]
       };
+
+      // Change the hit-testing to look for a horizontal plane
+      let hitTestOptions = { space:preferredInputSource, featureType:"horizontal-plane" };
+      xrSession.requestHitTestSource(hitTestOptions).then((hitTestSource) => {
+        activeDragInteraction.hitTestSource = hitTestSource;
+      });
 
       // Use imaginary 3D engine to indicate active drag object
       scene.addDragIndication(activeDragInteraction.target);
@@ -195,10 +200,21 @@ function onSelect(event) {
     let combinedHitTestResult = getHitCombinedHitTestResult(event.frame, 
                                                             activeDragInteraction.inputSource, 
                                                             activeDragInteraction.hitTestSource);
-    if (combinedHitTestResult["result"]) {
-      let target = activeDragInteraction.target;
-      let result = combinedHitTestResult["result"];
-      target.setTransform(result.transform);
+    let result = combinedHitTestResult["result"];
+    let target = activeDragInteraction.target;
+    
+    // Check if the object being dragged can fit at the requested 
+    // destination by comparing the bounds to the imaginary 3D engine's 
+    // target.footprint 
+    if (result && MatrixMathLibrary.contains(result.bounds, target.footprint)) {
+      let anchorOptions = { 
+                            relativeTo: xrReferenceSpace, 
+                            offset: result.transform,
+                            featureType: result.featureType
+                          };
+      event.frame.requestAnchor(anchorOptions).then( (anchor) => {
+        target.setAnchor(anchor);
+      });
     } else {
       target.setTransform(activeDragInteraction.initialTargetTransform);
     }
@@ -237,6 +253,8 @@ partial interface XRSession {
 partial interface XRFrame {
   FrozenArray<XRHitTestResult>? getHitTestResults(XRHitTestSource hitTestSource, optional XRSpace relativeTo);
   Promise<FrozenArray<XRHitTestResult>>? requestAsyncHitTestResults(XRHitTestOptionsInit options, optional XRSpace relativeTo);
+
+  Promise<XRAnchor> requestAnchor(XRAnchorOptions options);
 };
 
 //
@@ -246,12 +264,14 @@ partial interface XRFrame {
 dictionary XRHitTestOptionsInit {
   required XRSpace space;
   XRRay offsetRay = new XRRay();
+  XREnvironmentFeatureType featureType = "point"; 
 };
 
 [SecureContext, Exposed=Window]
 interface XRHitTestOptions {
   readonly attribute XRSpace space;
   readonly attributeXRRay offsetRay = new XRRay();
+  readonly attribute XREnvironmentFeatureType featureType; 
 };
 
 [SecureContext, Exposed=Window]
@@ -263,6 +283,35 @@ interface XRHitTestSource {
 interface XRHitTestResult {
   readonly attribute XRHitTestOptions hitTestOptions;
   readonly attribute XRRigidTransform transform;
+  readonly attribute FrozenArray<DOMPointReadOnly>? boundsGeometry;
+};
+
+//
+// Anchors
+//
+dictionary XRAnchorOptions  {
+  required XRSpace relativeTo;
+  XRRigidTransform offset;
+  XREnvironmentFeatureType featureType;
+};
+
+[SecureContext, Exposed=Window] 
+interface XRAnchor : XRSpace {
+  readonly attribute XREnvironmentFeatureType featureType;
+
+  readonly attribute boolean trackingActive;
+  Promise<void> suspendTracking();
+  Promise<void> resumeTracking();
+};
+
+//
+// Feature types
+//
+
+enum XREnvironmentFeatureType {
+  "point",
+  "vertical-plane",
+  "horizontal-plane",
 };
 
 //
