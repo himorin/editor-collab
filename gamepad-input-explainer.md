@@ -16,7 +16,7 @@
 * Still to poke at 
   * Oculus Go and Touch fires events at the extents of the motion controller bounds.
   * Vive seems to also treat trackpad regions as "being buttons"
-  * Figure out how to add the joint/transform details
+  * figure out how to represent trackpad edge clicks
 
 #### References:
 * [GitHub - stewdio/THREE.VRController: Support hand controllers for Oculus, Vive, Windows Mixed Reality, Daydream, GearVR, and more by adding VRController to your existing Three.js-based WebVR project.](https://github.com/stewdio/THREE.VRController)
@@ -24,6 +24,7 @@
 * [Unity - Manual:  Input for OpenVR controllers](https://docs.unity3d.com/Manual/OpenVRControllers.html)
 * [Steam VR Template -        Unreal Engine Forums](https://forums.unrealengine.com/development-discussion/vr-ar-development/78620-steam-vr-template?106609-Steam-VR-Template=)
 
+> I'm assuming that we'll normalize all the axes and values.  Values go from [0, 1], axes go from [-.5 to .5]
 
 ```json
 {
@@ -31,84 +32,148 @@
         "045E-065D" : {
             "name" : "Microsoft Motion Controller",
             "mapping" : "xr-standard",
+            "assets" : [
+                "Some uri"
+            ],
+            "hands" : {
+                "left" : {
+                    "components" : [ 0, 1, 2, 3, 4],
+                    "primary" : [0, 1],
+                    "asset" : 0,
+                    "nodeName" : "left",
+                },
+                "right" : {
+                    "components" : [ 0, 1, 2, 3, 4],
+                    "primary" : [0, 1],
+                    "asset" : 0,
+                    "nodeName" : "right",
+                }
+            },
             "components" : [
                 {
                     "name" : "trigger",
-                    "buttonIndex" : 0,
-                    "analog" : true,
-                    "clickable" : true,
-                    "touchable" : false,
-                },
-                {
-                    "name" : "thumbstick",
-                    "buttonIndex" : 1,
-                    "analog" : true,
-                    "clickable" : true,
-                    "touchable" : false,
-                    "xAxis" : {
-                        "axisIndex" : 0,
+                    "button" : {
+                        "buttonsIndex" : 0,
                         "analog" : true,
-                        "left" : -1,
-                        "right" : 1
-                    },
-                    "yAxis" : {
-                        "axisIndex" : 1,
-                        "analog" : true,
-                        "down" : 1,
-                        "up" : -1
+                        "clickable" : true,
+                        "touchable" : false,
+                        "min" : 0, 
+                        "max" : 1,
                     }
                 },
                 {
-                    "name" : "grip",
-                    "buttonIndex" : 2,
-                    "analog" : true,
-                    "clickable" : true,
-                    "touchable" : false,
-                },
-                {
-                    "name" : "trackpad",
-                    "buttonIndex" : 3,
-                    "analog" : true,
-                    "clickable" : true,
-                    "touchable" : true,
+                    "name" : "thumbstick",
+                    "button" : {
+                        "buttonsIndex" : 1,
+                        "analog" : false,
+                        "clickable" : true,
+                        "touchable" : false,
+                        "min" : 0, 
+                        "max" : 1,
+                    },
                     "xAxis" : {
-                        "axisIndex" : 2,
+                        "axesIndex" : 0,
                         "analog" : true,
+                        "clickable" : true,
+                        "touchable" : false,
                         "left" : -1,
-                        "right" : 1
+                        "right" : 1,
                     },
                     "yAxis" : {
-                        "axisIndex" : 3,
+                        "axesIndex" : 1,
                         "analog" : true,
                         "down" : -1,
                         "up" : 1
                     }
                 },
                 {
+                    "name" : "grip",
+                    "button" : {
+                        "buttonsIndex" : 2,
+                        "analog" : true,
+                        "clickable" : true,
+                        "touchable" : false,
+                        "min" : 0, 
+                        "max" : 1,
+                    }
+                },
+                {
+                    "name" : "touchpad",
+                    "button" : {
+                        "buttonsIndex" : 3,
+                        "analog" : true,
+                        "clickable" : true,
+                        "touchable" : true,
+                        "min" : 0, 
+                        "max" : 1,
+                    },
+                    "xAxis" : {
+                        "axisIndex" : 2,
+                        "analog" : true,
+                        "clickable" : true,
+                        "touchable" : true,
+                        "left" : -1,
+                        "right" : 1
+                    },
+                    "yAxis" : {
+                        "axisIndex" : 3,
+                        "analog" : true,
+                        "clickable" : true,
+                        "touchable" : true,
+                        "down" : -1,
+                        "up" : 1
+                    }
+                },
+                {
                     "name" : "menu",
-                    "buttonIndex" : 4,
-                    "analog" : false,
-                    "clickable" : true,
-                    "touchable" : false,
+                    "button" : {
+                        "buttonsIndex" : 4,
+                        "analog" : false,
+                        "clickable" : true,
+                        "touchable" : false,
+                        "min" : 0, 
+                        "max" : 1,
+                    }
                 },
             ],
-            "assets" : [
-                "Some uri"
-            ],
-            "hands" : {
-                "left" : {
-                    "components" : [0, 1, 2, 3, 4],
-                    "primary" : [0, 1],
-                    "assetId" : 0,
-                    "nodeName" : "left",
+            "animations" : [
+                {
+                    "component" : 0,
+                    "nodeName" : "trigger-node",
+                    "button" : {
+                        "minNodeName" : "trigger-node",
+                        "maxNodeName" : "trigger-max-node",
+                    }
                 },
-                "right" : {
-                    "components" : [0, 1, 2, 3, 4],
-                    "primary" : [0, 1],
-                    "assetId" : 0,
-                    "nodeName" : "right",
+                {
+                    "component" : 1,
+                    "nodeName" : "thumbstick-node",
+                    "button" : {
+                        "minNodeName" : "thumbstick-node",
+                        "maxNodeName" : "thumbstick-max-node",
+                    },
+                    "xAxis" : {
+                        "leftNodeName" : "thumbstick-left-node",
+                        "rightNodeName" : "thumbstick-right-node"
+                    },
+                    "yAxis" : {
+                        "upNodeName" : "thumbstick-up-node",
+                        "downNodeName" : "thumbstick-down-node"
+                    }
+                },
+                {
+                    "component" : 1,
+                    "nodeName" : "touchpad-touch-node",
+                    "xAxis" : {
+                        "leftNodeName" : "touchpad-touch-left-node",
+                        "rightNodeName" : "touchpad-touch-right-node"
+                    },
+                    "yAxis" : {
+                        "upNodeName" : "touchpad-touch-up-node",
+                        "downNodeName" : "touchpad-touch-down-node"
+                    }
                 }
-            }
+            ]
         },
 
 
@@ -118,10 +183,12 @@
             "components" : [
                 {
                     "name" : "thumbstick",
-                    "buttonIndex" : 0,
-                    "analog" : false,
-                    "clickable" : true,
-                    "touchable" : true,
+                    "button" : {
+                        "buttonsIndex" : 0,
+                        "analog" : false,
+                        "clickable" : true,
+                        "touchable" : true,
+                    },
                     "xAxis" : {
                         "axisIndex" : 0,
                         "analog" : false,
@@ -137,14 +204,16 @@
                 },
                 {
                     "name" : "trigger",
-                    "buttonIndex" : 1,
+                    "buttonsIndex" : 1,
+                    "nodeName" : "trigger-model-node",
                     "analog" : true,
                     "clickable" : true,
                     "touchable" : false,
                 },
                 {
                     "name" : "faceButton",
-                    "buttonIndex" : 2,
+                    "buttonsIndex" : 2,
+                    "nodeName" : "faceButton-model-node",
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : false,
@@ -176,7 +245,8 @@
             "components" : [
                 {
                     "name" : "thumbstick",
-                    "buttonIndex" : 0,
+                    "buttonsIndex" : 0,
+                    "nodeName" : "thumbstick-model-node",
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : true,
@@ -195,49 +265,55 @@
                 },
                 {
                     "name" : "trigger",
-                    "buttonIndex" : 1,
+                    "buttonsIndex" : 1,
+                    "nodeName" : "trigger-model-node",
                     "analog" : true,
                     "clickable" : true,
                     "touchable" : true,
                 },
                 {
                     "name" : "grip",
-                    "buttonIndex" : 2,
+                    "buttonsIndex" : 2,
+                    "nodeName" : "grip-model-node",
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : false,
                 },
                 {
                     "name" : "x",
-                    "buttonIndex" : 3,
+                    "buttonsIndex" : 3,
+                    "nodeName" : "x-model-node",
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : true,
                 },
                 {
                     "name" : "y",
-                    "buttonIndex" : 4,
+                    "buttonsIndex" : 4,
+                    "nodeName" : "y-model-node",
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : true,
                 },
                 {
                     "name" : "a",
-                    "buttonIndex" : 3,
+                    "buttonsIndex" : 3,
+                    "nodeName" : "a-model-node",
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : true,
                 },
                 {
                     "name" : "b",
-                    "buttonIndex" : 4,
+                    "buttonsIndex" : 4,
+                    "nodeName" : "b-model-node",
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : true,
                 },
                 { // Couldn't find this one documented anywhere
                     "name" : "thumbrest",
-                    "buttonIndex" : 5,
+                    "buttonsIndex" : 5,
                     "analog" : false,
                     "touchable" : true,
                     "clickable" : false,
@@ -269,7 +345,8 @@
             "components" : [
                 {
                     "name" : "thumbstick",
-                    "buttonIndex" : 0,
+                    "buttonsIndex" : 0,
+                    "nodeName" : "thumbstick-model-node",
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : true,
@@ -288,7 +365,8 @@
                 },
                 {
                     "name" : "faceButton",
-                    "buttonIndex" : 1,
+                    "buttonsIndex" : 1,
+                    "nodeName" : "faceButton-model-node",
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : false,
@@ -314,14 +392,14 @@
             "components" : [
                 {
                     "name" : "button",
-                    "buttonIndex" : 0,
+                    "buttonsIndex" : 0,
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : false,
                 },
                 {
                     "name" : "thumbstick",
-                    "buttonIndex" : 0,
+                    "buttonsIndex" : 0,
                     "analog" : false,
                     "clickable" : false,
                     "touchable" : false,
@@ -340,7 +418,7 @@
                 },
                 {
                     "name" : "back",
-                    "buttonIndex" : 1,
+                    "buttonsIndex" : 1,
                     "analog" : false,
                     "clickable" : true,
                     "touchable" : false,
@@ -366,7 +444,8 @@
             "components" : [
                 {
                     "name" : "trackpad",
-                    "buttonIndex" : 0,
+                    "buttonsIndex" : 0,
+                    "nodeName" : "trackpad-model-node",
                     "analog" : true,
                     "clickable" : true,
                     "touchable" : true,
@@ -385,14 +464,14 @@
                 },
                 {
                     "name" : "trigger",
-                    "buttonIndex" : 1,
+                    "buttonsIndex" : 1,
                     "clickable" : true,
                     "touchable" : true,
                     "analog" : true,
                 },
                 {
                     "name" : "grip",
-                    "buttonIndex" : 2,
+                    "buttonsIndex" : 2,
                     "analog" : false,
                     "touchable" : false,
                     "clickable" : true,
@@ -418,7 +497,7 @@
             "components" : [
                 {
                     "name" : "trackpad",
-                    "buttonIndex" : 0,
+                    "buttonsIndex" : 0,
                     "analog" : true,
                     "clickable" : true,
                     "touchable" : true,
@@ -437,21 +516,21 @@
                 },
                 {
                     "name" : "trigger",
-                    "buttonIndex" : 1,
+                    "buttonsIndex" : 1,
                     "clickable" : true,
                     "touchable" : true,
                     "analog" : true,
                 },
                 {
                     "name" : "innerFaceButton",
-                    "buttonIndex" : 2,
+                    "buttonsIndex" : 2,
                     "analog" : false,
                     "touchable" : false,
                     "clickable" : true,
                 },
                 {
                     "name" : "outerFaceButton",
-                    "buttonIndex" : 3,
+                    "buttonsIndex" : 3,
                     "analog" : false,
                     "touchable" : false,
                     "clickable" : true,
