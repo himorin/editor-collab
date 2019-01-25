@@ -24,16 +24,258 @@
 * [Unity - Manual:  Input for OpenVR controllers](https://docs.unity3d.com/Manual/OpenVRControllers.html)
 * [Steam VR Template -        Unreal Engine Forums](https://forums.unrealengine.com/development-discussion/vr-ar-development/78620-steam-vr-template?106609-Steam-VR-Template=)
 
-> I'm assuming that we'll normalize all the axes and values.  Values go from [0, 1], axes go from [-.5 to .5]
+### Components
+#### Analog Buttons
+Analog buttons report analog values in a range from `min` to `max`. If the component has `supportsTouch == true`, it MUST report `touched` for `value` > `min`, but MAY also report `touched` for `value` == `min`. 
 
+The following are the default properties:
+```json
+"analogButton" : {
+    "supportsTouch" : true,
+    "defaultValue" : 0,
+    "min" : 0,
+    "max" : 1,
+}
+```
+
+#### Binary Buttons
+Binary buttons only report one of two values. If the component has `supportsTouch == true`, it MUST report `touched` for `value` == `max`, but MAY also report `touched` for `value` == `min`. 
+
+The following are the default properties:
+```json
+"binaryButton" : {
+    "supportsTouch" : true,
+    "defaultValue" : 0,
+    "min" : 0,
+    "max" : 1,
+}
+```
+> **OPEN ISSUE** The oculus touch has a capacitive button that never fires a pressed event.... which type should this be?
+
+> **OPEN ISSUE** Should we have a "switch" style button or is that just a subtype of a `binaryButton`
+
+#### Thumbsticks
+Thumbsticks always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. The `centerButton` is not required to exist, but if it does and `supportsTouch` is `true`, `touched` MUST report if either `centerButton`, `xAxis`, or `yAxis` is not the `defaultValue`. 
+
+The following are the default properties:
+```json
+"thumbstick" : {
+    "centerButton" : {
+        "supportsTouch" : false,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
+    },
+    "xAxis" : {
+        "defaultValue" : 0,
+        "leftValue" : -1,
+        "rightValue" : 1,
+    },
+    "yAxis" : {
+        "defaultValue" : 0,
+        "upValue" : -1,
+        "downValue" : 1,
+    }
+}
+```
+
+#### Dpad
+Dpads are a combination of 4 buttons, of which a maximum two can be pressed at the same time. 
+
+The following are the default properties:
+```json
+"dpad" : {
+    "leftButton" : {
+        "supportsTouch" : false,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
+    },
+    "rightButton" : {
+        "supportsTouch" : false,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
+    },
+    "upButton" : {
+        "supportsTouch" : false,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
+    },
+    "downButton" : {
+        "supportsTouch" : false,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
+    }
+}
+```
+
+#### Trackpads
+Trackpads always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. The `centerButton` is not required to exist, but if it does and `supportsTouch` is `true`, `touched` MUST report if either `centerButton`, `xAxis`, or `yAxis` is not the `defaultValue`. The `leftButton`, `rightButton`, `upButton`, and `downButton` are also not guaranteed to exist, but if they do, their `touched` value should be true when the `x` and `y` values imply a touch in the button's region.
+
+The following are the default properties:
+```json
+"trackpad" : {
+    "xAxis" : {
+        "defaultValue" : 0,
+        "leftValue" : -1,
+        "rightValue" : 1,
+    },
+    "yAxis" : {
+        "defaultValue" : 0,
+        "upValue" : -1,
+        "downValue" : 1,
+    },
+    "centerButton" : {
+        "supportsTouch" : true,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
+    },
+    "leftButton" : {
+        "supportsTouch" : true,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
+    },
+    "rightButton" : {
+        "supportsTouch" : true,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
+    },
+    "upButton" : {
+        "supportsTouch" : true,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
+    },
+    "downButton" : {
+        "supportsTouch" : true,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
+    }
+}
+```
+
+### Known XR gamepad inventory
 ```json
 {
     "gamepads" : {
         "045E-065D" : {
             "name" : "Microsoft Motion Controller",
             "mapping" : "xr-standard",
+            "components" : [
+                {
+                    "name" : "trigger",
+                    "analogButton" : {
+                        "gamepadButtonIndex" : 0
+                    }
+                },
+                {
+                    "name" : "thumbstick",
+                    "thumbstick" : {
+                        "centerButton" : {
+                            "gamepadButtonIndex" : 1,
+                        },
+                        "xAxis" : {
+                            "gamepadAxisIndex" : 0,
+                        },
+                        "yAxis" : {
+                            "gamepadAxisIndex" : 1,
+                        }
+                    }
+                },
+                {
+                    "name" : "grip",
+                    "binaryButton" : {
+                        "gamepadButtonIndex" : 2,
+                    }
+                },
+                {
+                    "name" : "touchpad",
+                    "touchpad" : {
+                        "centerButton" : {
+                            "gamepadButtonIndex" : 3,
+                        },
+                        "xAxis" : {
+                            "gamepadAxisIndex" : 2,
+                        },
+                        "yAxis" : {
+                            "gamepadAxisIndex" : 3,
+                        }
+                    }
+                },
+                {
+                    "name" : "menu",
+                    "binaryButton" : {
+                        "gamepadButtonIndex" : 4,
+                        "supportsTouch" : false,
+                    }
+                },
+            ],
             "assets" : [
                 "Some uri"
+            ],
+            "ranges" : [
+                {
+                    "component" : 0,
+                    "nodeNames" : {
+                        "default" : "trigger-node",
+                        "min" : "trigger-min-node",
+                        "max" : "trigger-max-node",
+                    }
+                },
+                {
+                    "component" : 1,
+                    "nodeNames" : {
+                        "default" : "thumbstick-node",
+                        "left" : "thumbstick-left-node",
+                        "right" : "thumbstick-right-node",
+                        "up" : "thumbstick-up-node",
+                        "down" : "thumbstick-down-node",
+                        "centerMin" : "thumbstick-centerMin-node",
+                        "centerMax" : "thumbstick-centerMax-node",
+                    }
+                },
+                {
+                    "component" : 2,
+                    "nodeNames" : {
+                        "default" : "grip-node",
+                        "min" : "grip-min-node",
+                        "max" : "grip-max-node",
+                    }
+                },
+                {
+                    "component" : 2,
+                    "nodeNames" : {
+                        "default" : "touchpad-node",
+                        "left" : "touchpad-left-node",
+                        "right" : "touchpad-right-node",
+                        "up" : "touchpad-up-node",
+                        "down" : "touchpad-down-node",
+                        "centerMin" : "touchpad-centerMin-node",
+                        "centerMax" : "touchpad-centerMax-node",
+                        "touchpoint" : {
+                            "default" : "touchpad-touchpoint-node",
+                            "left" : "touchpad-touchpoint-left-node",
+                            "right" : "touchpad-touchpoint-right-node",
+                            "up" : "touchpad-touchpoint-up-node",
+                            "down" : "touchpad-touchpoint-down-node",
+                        }
+                    }
+                },
+                {
+                    "component" : 4,
+                    "nodeNames" : {
+                        "default" : "menu-node",
+                        "min" : "menu-min-node",
+                        "max" : "menu-max-node",
+                    }
+                }
             ],
             "hands" : {
                 "left" : {
@@ -48,132 +290,7 @@
                     "asset" : 0,
                     "nodeName" : "right",
                 }
-            },
-            "components" : [
-                {
-                    "name" : "trigger",
-                    "button" : {
-                        "buttonsIndex" : 0,
-                        "analog" : true,
-                        "clickable" : true,
-                        "touchable" : false,
-                        "min" : 0, 
-                        "max" : 1,
-                    }
-                },
-                {
-                    "name" : "thumbstick",
-                    "button" : {
-                        "buttonsIndex" : 1,
-                        "analog" : false,
-                        "clickable" : true,
-                        "touchable" : false,
-                        "min" : 0, 
-                        "max" : 1,
-                    },
-                    "xAxis" : {
-                        "axesIndex" : 0,
-                        "analog" : true,
-                        "clickable" : true,
-                        "touchable" : false,
-                        "left" : -1,
-                        "right" : 1,
-                    },
-                    "yAxis" : {
-                        "axesIndex" : 1,
-                        "analog" : true,
-                        "down" : -1,
-                        "up" : 1
-                    }
-                },
-                {
-                    "name" : "grip",
-                    "button" : {
-                        "buttonsIndex" : 2,
-                        "analog" : true,
-                        "clickable" : true,
-                        "touchable" : false,
-                        "min" : 0, 
-                        "max" : 1,
-                    }
-                },
-                {
-                    "name" : "touchpad",
-                    "button" : {
-                        "buttonsIndex" : 3,
-                        "analog" : true,
-                        "clickable" : true,
-                        "touchable" : true,
-                        "min" : 0, 
-                        "max" : 1,
-                    },
-                    "xAxis" : {
-                        "axisIndex" : 2,
-                        "analog" : true,
-                        "clickable" : true,
-                        "touchable" : true,
-                        "left" : -1,
-                        "right" : 1
-                    },
-                    "yAxis" : {
-                        "axisIndex" : 3,
-                        "analog" : true,
-                        "clickable" : true,
-                        "touchable" : true,
-                        "down" : -1,
-                        "up" : 1
-                    }
-                },
-                {
-                    "name" : "menu",
-                    "button" : {
-                        "buttonsIndex" : 4,
-                        "analog" : false,
-                        "clickable" : true,
-                        "touchable" : false,
-                        "min" : 0, 
-                        "max" : 1,
-                    }
-                },
-            ],
-            "animations" : [
-                {
-                    "component" : 0,
-                    "nodeName" : "trigger-node",
-                    "button" : {
-                        "minNodeName" : "trigger-node",
-                        "maxNodeName" : "trigger-max-node",
-                    }
-                },
-                {
-                    "component" : 1,
-                    "nodeName" : "thumbstick-node",
-                    "button" : {
-                        "minNodeName" : "thumbstick-node",
-                        "maxNodeName" : "thumbstick-max-node",
-                    },
-                    "xAxis" : {
-                        "leftNodeName" : "thumbstick-left-node",
-                        "rightNodeName" : "thumbstick-right-node"
-                    },
-                    "yAxis" : {
-                        "upNodeName" : "thumbstick-up-node",
-                        "downNodeName" : "thumbstick-down-node"
-                    }
-                },
-                {
-                    "component" : 1,
-                    "nodeName" : "touchpad-touch-node",
-                    "xAxis" : {
-                        "leftNodeName" : "touchpad-touch-left-node",
-                        "rightNodeName" : "touchpad-touch-right-node"
-                    },
-                    "yAxis" : {
-                        "upNodeName" : "touchpad-touch-up-node",
-                        "downNodeName" : "touchpad-touch-down-node"
-                    }
-                }
-            ]
+            }
         },
 
 
