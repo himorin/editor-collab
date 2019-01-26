@@ -21,12 +21,6 @@ This explains the purpose of this document
   * Vive seems to also treat trackpad regions as "being buttons"
   * figure out how to represent trackpad edge clicks
 
-#### References:
-* [GitHub - stewdio/THREE.VRController: Support hand controllers for Oculus, Vive, Windows Mixed Reality, Daydream, GearVR, and more by adding VRController to your existing Three.js-based WebVR project.](https://github.com/stewdio/THREE.VRController)
-* [assets/controllers at gh-pages · aframevr/assets · GitHub](https://github.com/aframevr/assets/tree/gh-pages/controllers)
-* [Unity - Manual:  Input for OpenVR controllers](https://docs.unity3d.com/Manual/OpenVRControllers.html)
-* [Steam VR Template -        Unreal Engine Forums](https://forums.unrealengine.com/development-discussion/vr-ar-development/78620-steam-vr-template?106609-Steam-VR-Template=)
-
 ## Schema explanation
 FILL ME IN
 
@@ -39,62 +33,55 @@ FILL ME IN
 ### Components
 FILL ME IN
 
-#### Analog Buttons
-Analog buttons report analog values in a range from `min` to `max`. If the component has `supportsTouch == true`, it MUST report `touched` for `value` > `min`, but MAY also report `touched` for `value` == `min`. 
+#### Buttons
+Buttons have two styles: analog or binary.  Analog buttons report analog values in a range from `min` to `max`. If the component has `supportsTouch == true`, it MUST report `touched` for `value` > `min`, but MAY also report `touched` for `value` == `min`. Binary buttons only report one of two values. If the component has `supportsTouch == true`, it MUST report `touched` for `value` == `max`, but MAY also report `touched` for `value` == `min`. 
 
 The following are the default properties:
 ```json
-"analogButton" : {
-    "supportsTouch" : true,
-    "defaultValue" : 0,
-    "min" : 0,
-    "max" : 1,
-}
-```
-
-#### Binary Buttons
-Binary buttons only report one of two values. If the component has `supportsTouch == true`, it MUST report `touched` for `value` == `max`, but MAY also report `touched` for `value` == `min`. 
-
-The following are the default properties:
-```json
-"binaryButton" : {
-    "supportsTouch" : true,
-    "defaultValue" : 0,
-    "min" : 0,
-    "max" : 1,
-}
-```
-> **OPEN ISSUE** The oculus touch has a capacitive button that never fires a pressed event.... which type should this be?
-
-> **OPEN ISSUE** Should we have a "switch" style button or is that just a subtype of a `binaryButton`
-
-#### Thumbsticks
-Thumbsticks always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. The `centerButton` is not required to exist, but if it does and `supportsTouch` is `true`, `touched` MUST report if either `centerButton`, `xAxis`, or `yAxis` is not the `defaultValue`. 
-
-The following are the default properties:
-```json
-"thumbstick" : {
-    "centerButton" : {
-        "supportsTouch" : false,
+{
+    "button" : {
+        "supportsTouch" : true,
+        "analogValues" : false,
         "defaultValue" : 0,
         "min" : 0,
         "max" : 1,
-    },
-    "xAxis" : {
-        "defaultValue" : 0,
-        "leftValue" : -1,
-        "rightValue" : 1,
-    },
-    "yAxis" : {
-        "defaultValue" : 0,
-        "upValue" : -1,
-        "downValue" : 1,
+    }
+}
+```
+
+> **OPEN ISSUE** The oculus touch has a capacitive button that never fires a pressed event.... how should this be represented?
+
+> **OPEN ISSUE** Should we have a "switch" style button?  Or is that a subtype of something else?
+
+#### Thumbsticks
+Thumbsticks always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. A `thumbstick` may also have a `centerButton` and if it does if it does and `supportsTouch` is `true`, `touched` MUST report if either `centerButton`, `xAxis`, or `yAxis` is not the `defaultValue`. 
+
+The following are the default properties:
+```json
+{
+    "thumbstick" : {
+        "xAxis" : {
+            "defaultValue" : 0,
+            "leftValue" : -1,
+            "rightValue" : 1,
+        },
+        "yAxis" : {
+            "defaultValue" : 0,
+            "upValue" : -1,
+            "downValue" : 1,
+        },
+        "centerButton" : {
+            "supportsTouch" : false,
+            "defaultValue" : 0,
+            "min" : 0,
+            "max" : 1,
+        }
     }
 }
 ```
 
 #### Dpad
-Dpads are a combination of 4 buttons, of which a maximum two can be pressed at the same time. 
+Dpads are a switch style component.  If a `leftButton` and a `rightButton` are present, only one can be pressed at a time.  If a `upButton` and a `downButton` are present, only one can be pressed at the same time.  If a `centerButton` is present, it cannot be pressed at the same time as any of the other buttons.
 
 The following are the default properties:
 ```json
@@ -122,14 +109,20 @@ The following are the default properties:
         "defaultValue" : 0,
         "min" : 0,
         "max" : 1,
+    },
+    "centerButton" : {
+        "supportsTouch" : false,
+        "defaultValue" : 0,
+        "min" : 0,
+        "max" : 1,
     }
 }
 ```
 
 #### Trackpads
-Trackpads always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. The `centerButton` is not required to exist, but if it does and `supportsTouch` is `true`, `touched` MUST report if either `centerButton`, `xAxis`, or `yAxis` is not the `defaultValue`. The `leftButton`, `rightButton`, `upButton`, and `downButton` are also not guaranteed to exist, but if they do, their `touched` value should be true when the `x` and `y` values imply a touch in the button's region.
+Trackpads always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. The `dpad` is not required to exist, nor is the `supportsTouch` property required to be true for its buttons.  However, if this is the case, the `touched` attribute of the `leftButton`, `rightButton`, `upButton`, `downButton`, and `centerButton` will be `true` if a press at the current `x` and `y` position would cause the button to be pressed. 
 
-> **Open Issue** Are the edge buttons actually separate buttons in the buttons array
+> **Open Issue** Are the edge buttons actually separate buttons in the buttons array?
 
 The following are the default properties:
 ```json
@@ -144,35 +137,22 @@ The following are the default properties:
         "upValue" : -1,
         "downValue" : 1,
     },
-    "centerButton" : {
-        "supportsTouch" : true,
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
-    },
-    "leftButton" : {
-        "supportsTouch" : true,
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
-    },
-    "rightButton" : {
-        "supportsTouch" : true,
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
-    },
-    "upButton" : {
-        "supportsTouch" : true,
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
-    },
-    "downButton" : {
-        "supportsTouch" : true,
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
+    "dpad" : {
+        "leftButton" : {
+            "supportsTouch" : true,
+        },
+        "rightButton" : {
+            "supportsTouch" : true,
+        },
+        "upButton" : {
+            "supportsTouch" : true,
+        },
+        "downButton" : {
+            "supportsTouch" : true,
+        },
+        "centerButton" : {
+            "supportsTouch" : true,
+        }
     }
 }
 ```
@@ -183,7 +163,7 @@ FILL ME IN
 FILL ME IN
 
 ## Known XR gamepad inventory
-FILL ME IN
+This section covers the mappings for all known XR controllers including those without independent tracking
 
 ### Windows Mixed Reality
 ```json
@@ -205,47 +185,50 @@ FILL ME IN
     "components" : [
         {
             "name" : "trigger",
-            "analogButton" : {
-                "gamepadButtonIndex" : 0
+            "button" : {
+                "gamepadButtonIndex" : 0,
+                "analogValues" : true,
             }
         },
         {
             "name" : "thumbstick",
             "thumbstick" : {
-                "centerButton" : {
-                    "gamepadButtonIndex" : 1,
-                },
                 "xAxis" : {
                     "gamepadAxisIndex" : 0,
                 },
                 "yAxis" : {
                     "gamepadAxisIndex" : 1,
+                },
+                "centerButton" : {
+                    "gamepadButtonIndex" : 1,
                 }
             }
         },
         {
             "name" : "grip",
-            "binaryButton" : {
+            "button" : {
                 "gamepadButtonIndex" : 2
             }
         },
         {
             "name" : "touchpad",
             "touchpad" : {
-                "centerButton" : {
-                    "gamepadButtonIndex" : 3,
-                },
                 "xAxis" : {
                     "gamepadAxisIndex" : 2,
                 },
                 "yAxis" : {
                     "gamepadAxisIndex" : 3,
+                },
+                "dpad" : {
+                    "centerButton" : {
+                        "gamepadButtonIndex" : 3
+                    }
                 }
             }
         },
         {
             "name" : "menu",
-            "binaryButton" : {
+            "button" : {
                 "gamepadButtonIndex" : 4,
                 "supportsTouch" : false,
             }
@@ -265,7 +248,7 @@ FILL ME IN
                 "component" : 0,
                 "rootNode" : "trigger-node",
                 "labelNode" : "trigger-label-node",
-                "analogMotion" : {
+                "buttonMotion" : {
                     "target" : "trigger-transform-node",
                     "min" : "trigger-min-transform-node",
                     "max" : "trigger-max-transform-node",
@@ -289,7 +272,7 @@ FILL ME IN
                 "component" : 2,
                 "rootNode" : "grip-node",
                 "labelNode" : "grip-label-node",
-                "binaryMotion" : {
+                "buttonMotion" : {
                     "target" : "grip-transform-node",
                     "min" : "grip-min-transform-node",
                     "max" : "grip-max-transform-node",
@@ -299,14 +282,15 @@ FILL ME IN
                 "component" : 3,
                 "rootNode" : "touchpad-node",
                 "labelNode" : "touchpad-label-node",
-                "touchpadMotion" : {
+                "dpadMotion" : {
                     "target" : "touchpad-transform-node",
                     "left" : "touchpad-transform-left-node",
                     "right" : "touchpad-transform-right-node",
                     "up" : "touchpad-transform-up-node",
-                    "down" : "touchpad-transform-down-node"
+                    "down" : "touchpad-transform-down-node",
+                    "center" : "touchpad-transform-center-node"
                 },
-                "touchpadTouchpoint" : {
+                "touchpadMotion" : {
                     "target" : "touchpad-touchpoint-node",
                     "left" : "touchpad-touchpoint-left-node",
                     "right" : "touchpad-touchpoint-right-node",
@@ -318,7 +302,7 @@ FILL ME IN
                 "component" : 4,
                 "rootNode" : "menu-node",
                 "labelNode" : "menu-label-node",
-                "binaryMotion" : {
+                "buttonMotion" : {
                     "target" : "menu-transform-node",
                     "min" : "menu-min-transform-node",
                     "max" : "menu-max-transform-node",
@@ -337,67 +321,105 @@ FILL ME IN
     "hands" : {
         "left" : {
             "components" : [0, 1, 2],
-            "primary" : [0],
+            "primaryButton" : 0,
+            "primaryAxes" : 0
         },
         "right" : {
             "components" : [0, 1, 2],
-            "primary" : [0],
+            "primaryButton" : 0,
+            "primaryAxes" : 0
         }
     },
     "components" : [
         {
             "name" : "thumbstick",
             "touchpad" : {
-                "centerButton" : {
-                    "gamepadButtonIndex" : 0,
-                },
                 "xAxis" : {
                     "gamepadAxisIndex" : 0,
                 },
                 "yAxis" : {
                     "gamepadAxisIndex" : 1,
                 },
-                "leftButton" : {
-                    "gamepadButtonIndex" : 6,
-                },
-                "rightButton" : {
-                    "gamepadButtonIndex" : 7,
-                },
-                "downButton" : {
-                    "gamepadButtonIndex" : 8,
-                },
-                "upButton" : {
-                    "gamepadButtonIndex" : 9,
+                "dpad" : {
+                    "leftButton" : {
+                        "gamepadButtonIndex" : 3,
+                    },
+                    "rightButton" : {
+                        "gamepadButtonIndex" : 4,
+                    },
+                    "downButton" : {
+                        "gamepadButtonIndex" : 5,
+                    },
+                    "upButton" : {
+                        "gamepadButtonIndex" : 6,
+                    },
+                    "centerButton" : {
+                        "gamepadButtonIndex" : 0,
+                    }
                 }
             }
         },
         {
             "name" : "trigger",
-            "buttonsIndex" : 1,
-            "nodeName" : "trigger-model-node",
-            "analog" : true,
-            "clickable" : true,
-            "touchable" : false,
+            "gamepadButtonIndex" : 1,
+            "analogValues" : true,
         },
         {
             "name" : "faceButton",
-            "buttonsIndex" : 2,
-            "nodeName" : "faceButton-model-node",
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : false,
+            "gamepadButtonIndex" : 2,
         },
     ],
     "assets" : {
         "leftHand" : {
             "asset" : "some uri",
-            "rootNode" : "controller-node"
+            "rootNode" : "neutral-controller-node"
         },
         "rightHand" : {
             "asset" : "some uri",
-            "rootNode" : "controller-node"
+            "rootNode" : "neutral-controller-node"
         },
-        "visualizationNodes" : []
+        "visualizationNodes" : [
+            {
+                "component" : 0,
+                "rootNode" : "touchpad-node",
+                "labelNode" : "touchpad-label-node",
+                "dpadMotion" : {
+                    "target" : "touchpad-transform-node",
+                    "left" : "touchpad-transform-left-node",
+                    "right" : "touchpad-transform-right-node",
+                    "up" : "touchpad-transform-up-node",
+                    "down" : "touchpad-transform-down-node",
+                    "center" : "touchpad-transform-center-node"
+                },
+                "touchpadMotion" : {
+                    "target" : "touchpad-touchpoint-node",
+                    "left" : "touchpad-touchpoint-left-node",
+                    "right" : "touchpad-touchpoint-right-node",
+                    "up" : "touchpad-touchpoint-up-node",
+                    "down" : "touchpad-touchpoint-down-node"
+                }
+            },
+            {
+                "component" : 1,
+                "rootNode" : "trigger-node",
+                "labelNode" : "trigger-label-node",
+                "buttonMotion" : {
+                    "target" : "trigger-transform-node",
+                    "min" : "trigger-min-transform-node",
+                    "max" : "trigger-max-transform-node",
+                }
+            },
+            {
+                "component" : 1,
+                "rootNode" : "faceButton-node",
+                "labelNode" : "faceButton-label-node",
+                "buttonMotion" : {
+                    "target" : "faceButton-transform-node",
+                    "min" : "faceButton-min-transform-node",
+                    "max" : "faceButton-max-transform-node",
+                }
+            },
+        ],
     }
 }
 ```
@@ -743,3 +765,12 @@ FILL ME IN
 
 ### HoloLens Clicker
 Should this be included?  Should the Oculus Remote be removed?
+
+## Appendices
+
+### References
+* [GitHub - stewdio/THREE.VRController: Support hand controllers for Oculus, Vive, Windows Mixed Reality, Daydream, GearVR, and more by adding VRController to your existing Three.js-based WebVR project.](https://github.com/stewdio/THREE.VRController)
+* [assets/controllers at gh-pages · aframevr/assets · GitHub](https://github.com/aframevr/assets/tree/gh-pages/controllers)
+* [Unity - Manual:  Input for OpenVR controllers](https://docs.unity3d.com/Manual/OpenVRControllers.html)
+* [Steam VR Template -        Unreal Engine Forums](https://forums.unrealengine.com/development-discussion/vr-ar-development/78620-steam-vr-template?106609-Steam-VR-Template=)
+* [Mapping Oculus Controller Input to Blueprint Events](https://developer.oculus.com/documentation/unreal/latest/concepts/unreal-controller-input-mapping-reference/)
