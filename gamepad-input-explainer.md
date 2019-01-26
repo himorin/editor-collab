@@ -612,46 +612,85 @@ This section covers the mappings for all known XR controllers including those wi
 "GearVR" : {
     "name" : "Gear VR",
     "mapping" : "xr-standard",
+    "hands" : {
+        "neutral" : {
+            "components" : [0, 1, 2],
+            "primaryButton" : 0,
+            "primaryAxes" : 0
+        },
+    },
     "components" : [
         {
             "name" : "thumbstick",
-            "buttonsIndex" : 0,
-            "nodeName" : "thumbstick-model-node",
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : true,
-            "xAxis" : {
-                "axisIndex" : 0,
-                "analog" : false,
-                "left" : -1,
-                "right" : 1
-            },
-            "yAxis" : {
-                "axisIndex" : 1,
-                "analog" : false,
-                "down" : -1,
-                "up" : 1
+            "touchpad" : {
+                "xAxis" : {
+                    "gamepadAxisIndex" : 0,
+                },
+                "yAxis" : {
+                    "gamepadAxisIndex" : 1,
+                },
+                "dpad" : {
+                    "leftButton" : {
+                        "gamepadButtonIndex" : 3,
+                    },
+                    "rightButton" : {
+                        "gamepadButtonIndex" : 4,
+                    },
+                    "downButton" : {
+                        "gamepadButtonIndex" : 5,
+                    },
+                    "upButton" : {
+                        "gamepadButtonIndex" : 6,
+                    },
+                    "centerButton" : {
+                        "gamepadButtonIndex" : 0,
+                    }
+                }
             }
         },
         {
             "name" : "faceButton",
-            "buttonsIndex" : 1,
-            "nodeName" : "faceButton-model-node",
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : false,
+            "gamepadButtonIndex" : 2,
+            "supportsTouch" : false
         },
     ],
-    "assets" : [
-        "Some uri"
-    ],
-    "hands" : {
-        "neutral" : {
-            "components" : [0, 1],
-            "primary" : [0],
-            "assetId" : 0,
-            "nodeName" : "neutral",
-        }
+    "assets" : {
+        "neutralHand" : {
+            "asset" : "some uri",
+            "rootNode" : "neutral-controller-node"
+        },
+        "visualizationNodes" : [
+            {
+                "component" : 0,
+                "rootNode" : "touchpad-node",
+                "labelNode" : "touchpad-label-node",
+                "dpadMotion" : {
+                    "target" : "touchpad-transform-node",
+                    "left" : "touchpad-transform-left-node",
+                    "right" : "touchpad-transform-right-node",
+                    "up" : "touchpad-transform-up-node",
+                    "down" : "touchpad-transform-down-node",
+                    "center" : "touchpad-transform-center-node"
+                },
+                "touchpadMotion" : {
+                    "target" : "touchpad-touchpoint-node",
+                    "left" : "touchpad-touchpoint-left-node",
+                    "right" : "touchpad-touchpoint-right-node",
+                    "up" : "touchpad-touchpoint-up-node",
+                    "down" : "touchpad-touchpoint-down-node"
+                }
+            },
+            {
+                "component" : 1,
+                "rootNode" : "faceButton-node",
+                "labelNode" : "faceButton-label-node",
+                "buttonMotion" : {
+                    "target" : "faceButton-transform-node",
+                    "min" : "faceButton-min-transform-node",
+                    "max" : "faceButton-max-transform-node",
+                }
+            }
+        ]
     }
 }
 ```
