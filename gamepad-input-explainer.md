@@ -36,6 +36,8 @@ FILL ME IN
 #### Buttons
 Buttons have two styles: analog or binary.  Analog buttons report analog values in a range from `min` to `max`. If the component has `supportsTouch == true`, it MUST report `touched` for `value` > `min`, but MAY also report `touched` for `value` == `min`. Binary buttons only report one of two values. If the component has `supportsTouch == true`, it MUST report `touched` for `value` == `max`, but MAY also report `touched` for `value` == `min`. 
 
+The `button.gamepadButtonsIndex` value must be present for the `button` to be valid.  This value maps to the index into the matching `Gamepad`'s `buttons` array.
+
 The following are the default properties:
 ```json
 {
@@ -53,7 +55,11 @@ The following are the default properties:
 > **OPEN ISSUE** Should we have a "switch" style button?  Or is that a subtype of something else? buttons? dpads?
 
 #### Thumbsticks
-Thumbsticks always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. A `thumbstick` may also have a `centerButton` and if it does if it does and `supportsTouch` is `true`, `touched` MUST report if either `centerButton`, `xAxis`, or `yAxis` is not the `defaultValue`. 
+Thumbsticks always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. 
+
+The `xAxis.gamepadAxesIndex` and `yAxis.gamepadAxesIndex` values must be present for the `thumbstick` to be valid.  These values map to the indices into the matching `Gamepad`'s `axes` array.
+
+A `thumbstick` may also have a `centerButton`. If so, the `centerButton.gamepadButtonsIndex` value must be present for the `thumbstick` to be valid.  This value maps to the index into the matching `Gamepad`'s `buttons` array. Additionally if `centerButton.supportsTouch` is `true`, `touched` MUST report if either `centerButton`, `xAxis`, or `yAxis` is not the `defaultValue`. 
 
 The following are the default properties:
 ```json
@@ -82,35 +88,33 @@ The following are the default properties:
 #### Dpad
 Dpads are a switch style component.  If a `leftButton` and a `rightButton` are present, only one can be pressed at a time.  If a `upButton` and a `downButton` are present, only one can be pressed at the same time.  If a `centerButton` is present, it cannot be pressed at the same time as any of the other buttons.
 
+If the `leftButton`, `rightButton`, `upButton`, `downButton`, or `centerButton` are present, their `gamepadButtonsIndex` values must be present for the `dpad` to be valid.  These values map to the indices into the matching `Gamepad`'s `buttons` array.
+
 The following are the default properties:
 ```json
 "dpad" : {
+    "supportsTouch" : false,
     "leftButton" : {
-        "supportsTouch" : false,
         "defaultValue" : 0,
         "min" : 0,
         "max" : 1,
     },
     "rightButton" : {
-        "supportsTouch" : false,
         "defaultValue" : 0,
         "min" : 0,
         "max" : 1,
     },
     "upButton" : {
-        "supportsTouch" : false,
         "defaultValue" : 0,
         "min" : 0,
         "max" : 1,
     },
     "downButton" : {
-        "supportsTouch" : false,
         "defaultValue" : 0,
         "min" : 0,
         "max" : 1,
     },
     "centerButton" : {
-        "supportsTouch" : false,
         "defaultValue" : 0,
         "min" : 0,
         "max" : 1,
@@ -119,7 +123,11 @@ The following are the default properties:
 ```
 
 #### Trackpads
-Trackpads always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. The `dpad` is not required to exist, nor is the `supportsTouch` property required to be true for its buttons.  However, if this is the case, the `touched` attribute of the `leftButton`, `rightButton`, `upButton`, `downButton`, and `centerButton` will be `true` if a press at the current `x` and `y` position would cause the button to be pressed. 
+Trackpads always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. 
+
+The `xAxis.gamepadAxesIndex` and `yAxis.gamepadAxesIndex` values must be present for the `trackpad` to be valid.  These values map to the indices into the matching `Gamepad`'s `axes` array.
+
+A `trackpad` may also have a `dpad`. If so, the `dpad` be valid for the `trackpad` to be valid.  Additionally if `dpad.supportsTouch` is `true`, the `touched` attribute of the `leftButton`, `rightButton`, `upButton`, `downButton`, and `centerButton` MUST be `true` if a press at the current `x` and `y` position would cause the button to be pressed. 
 
 The following are the default properties:
 ```json
@@ -135,20 +143,16 @@ The following are the default properties:
         "downValue" : 1,
     },
     "dpad" : {
+        "supportsTouch" : true,
         "leftButton" : {
-            "supportsTouch" : true,
         },
         "rightButton" : {
-            "supportsTouch" : true,
         },
         "upButton" : {
-            "supportsTouch" : true,
         },
         "downButton" : {
-            "supportsTouch" : true,
         },
         "centerButton" : {
-            "supportsTouch" : true,
         }
     }
 }
