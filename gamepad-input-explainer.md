@@ -168,9 +168,16 @@ The following are the default properties:
         "045E-065D" : {
             "name" : "Microsoft Motion Controller",
             "mapping" : "xr-standard",
-            "assets" : [
-                "Some uri"
-            ],
+            "hands" : {
+                "left" : {
+                    "components" : [ 0, 1, 2, 3, 4],
+                    "primary" : [0, 1],
+                },
+                "right" : {
+                    "components" : [ 0, 1, 2, 3, 4],
+                    "primary" : [0, 1],
+                }
+            },
             "components" : [
                 {
                     "name" : "trigger",
@@ -189,29 +196,13 @@ The following are the default properties:
                         },
                         "yAxis" : {
                             "gamepadAxisIndex" : 1,
-                        },
-                        "model" : {
-                            "nodeName" : "thumbstick-node",
-                            "motion" : {
-                                "left" : "thumbstick-left-transform-node",
-                                "right" : "thumbstick-right-transform-node",
-                                "down" : "thumbstick-left-transform-node",
-                                "up" : "thumbstick-right-transform-node",
-                                "centerMin" : "thumbstick-center-min-transform-node",
-                                "centerMax" : "thumbstick-center-max-transform-node"
-                            }
                         }
                     }
                 },
                 {
                     "name" : "grip",
                     "binaryButton" : {
-                        "gamepadButtonIndex" : 2,
-                        "motion" : {
-                            "default" : "grip-default-transform-node",
-                            "min" : "grip-min-transform-node",
-                            "max" : "grip-max-transform-node"
-                        }
+                        "gamepadButtonIndex" : 2
                     }
                 },
                 {
@@ -236,74 +227,80 @@ The following are the default properties:
                     }
                 },
             ],
-            "visualizations" : [
-                {
-                    "component" : 0,
-                    "analogMotion" : {
-                        "nodeName" : "trigger-node",
-                        "min" : "trigger-min-transform-node",
-                        "max" : "trigger-max-transform-node",
-                    }
+            "assets" : {
+                "leftHand" : {
+                    "asset" : "some uri",
+                    "rootNode" : "left-controller-node"
                 },
-                {
-                    "component" : 1,
-                    "thumbstickMotion" : {
-                        "nodeName" : "thumbstick-node",
-                        "left" : "thumbstick-left-node",
-                        "right" : "thumbstick-right-node",
-                        "up" : "thumbstick-up-node",
-                        "down" : "thumbstick-down-node",
-                        "centerMin" : "thumbstick-centerMin-node",
-                        "centerMax" : "thumbstick-centerMax-node",
-                    }
+                "rightHand" : {
+                    "asset" : "some uri",
+                    "rootNode" : "right-controller-node"
                 },
-                {
-                    "component" : 2,
-                    "binaryMotion" : {
-                        "nodeName" : "grip-node",
-                        "min" : "grip-min-transform-node",
-                        "max" : "grip-max-transform-node",
-                    }
-                },
-                {
-                    "component" : 3,
-                    "touchpadMotion" : {
-                        "nodeName" : "touchpad-node",
-                        "left" : "touchpad-left-node",
-                        "right" : "touchpad-right-node",
-                        "up" : "touchpad-up-node",
-                        "down" : "touchpad-down-node"
+                "visualizationNodes" : [
+                    {
+                        "component" : 0,
+                        "rootNode" : "trigger-node",
+                        "labelNode" : "trigger-label-node",
+                        "analogMotion" : {
+                            "target" : "trigger-transform-node",
+                            "min" : "trigger-min-transform-node",
+                            "max" : "trigger-max-transform-node",
+                        }
                     },
-                    "touchpadTouchpoint" : {
-                        "nodeName" : "touchpad-touchpoint-node",
-                        "left" : "touchpad-touchpoint-left-node",
-                        "right" : "touchpad-touchpoint-right-node",
-                        "up" : "touchpad-touchpoint-up-node",
-                        "down" : "touchpad-touchpoint-down-node"
-                    }
-                },
-                {
-                    "component" : 4,
-                    "binaryMotion" : {
-                        "nodeName" : "menu-node",
-                        "min" : "menu-min-transform-node",
-                        "max" : "menu-max-transform-node",
-                    }
-                },
-            ],
-            "hands" : {
-                "left" : {
-                    "components" : [ 0, 1, 2, 3, 4],
-                    "primary" : [0, 1],
-                    "asset" : 0,
-                    "nodeName" : "left",
-                },
-                "right" : {
-                    "components" : [ 0, 1, 2, 3, 4],
-                    "primary" : [0, 1],
-                    "asset" : 0,
-                    "nodeName" : "right",
-                }
+                    {
+                        "component" : 1,
+                        "rootNode" : "trigger-node",
+                        "labelNode" : "trigger-label-node",
+                        "thumbstickMotion" : {
+                            "target" : "thumbstick-transform-node",
+                            "left" : "thumbstick-transform-left-node",
+                            "right" : "thumbstick-right-transform-right-node",
+                            "up" : "thumbstick-transform-up-node",
+                            "down" : "thumbstick-transform-down-node",
+                            "centerMin" : "thumbstick-transform-centerMin-node",
+                            "centerMax" : "thumbstick-transform-centerMax-node",
+                        }
+                    },
+                    {
+                        "component" : 2,
+                        "rootNode" : "grip-node",
+                        "labelNode" : "grip-label-node",
+                        "binaryMotion" : {
+                            "target" : "grip-transform-node",
+                            "min" : "grip-min-transform-node",
+                            "max" : "grip-max-transform-node",
+                        }
+                    },
+                    {
+                        "component" : 3,
+                        "rootNode" : "touchpad-node",
+                        "labelNode" : "touchpad-label-node",
+                        "touchpadMotion" : {
+                            "target" : "touchpad-transform-node",
+                            "left" : "touchpad-transform-left-node",
+                            "right" : "touchpad-transform-right-node",
+                            "up" : "touchpad-transform-up-node",
+                            "down" : "touchpad-transform-down-node"
+                        },
+                        "touchpadTouchpoint" : {
+                            "target" : "touchpad-touchpoint-node",
+                            "left" : "touchpad-touchpoint-left-node",
+                            "right" : "touchpad-touchpoint-right-node",
+                            "up" : "touchpad-touchpoint-up-node",
+                            "down" : "touchpad-touchpoint-down-node"
+                        }
+                    },
+                    {
+                        "component" : 4,
+                        "rootNode" : "menu-node",
+                        "labelNode" : "menu-label-node",
+                        "binaryMotion" : {
+                            "target" : "menu-transform-node",
+                            "min" : "menu-min-transform-node",
+                            "max" : "menu-max-transform-node",
+                        }
+                    },
+                ],
             }
         },
 
