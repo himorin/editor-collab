@@ -41,6 +41,7 @@ The following are the default properties:
 {
     "button" : {
         "supportsTouch" : true,
+        "supportsPress" : true,
         "analogValues" : false,
         "defaultValue" : 0,
         "min" : 0,
@@ -49,9 +50,7 @@ The following are the default properties:
 }
 ```
 
-> **OPEN ISSUE** The oculus touch has a capacitive button that never fires a pressed event.... how should this be represented?
-
-> **OPEN ISSUE** Should we have a "switch" style button?  Or is that a subtype of something else?
+> **OPEN ISSUE** Should we have a "switch" style button?  Or is that a subtype of something else? buttons? dpads?
 
 #### Thumbsticks
 Thumbsticks always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. A `thumbstick` may also have a `centerButton` and if it does if it does and `supportsTouch` is `true`, `touched` MUST report if either `centerButton`, `xAxis`, or `yAxis` is not the `defaultValue`. 
@@ -121,8 +120,6 @@ The following are the default properties:
 
 #### Trackpads
 Trackpads always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. The `dpad` is not required to exist, nor is the `supportsTouch` property required to be true for its buttons.  However, if this is the case, the `touched` attribute of the `leftButton`, `rightButton`, `upButton`, `downButton`, and `centerButton` will be `true` if a press at the current `x` and `y` position would cause the button to be pressed. 
-
-> **Open Issue** Are the edge buttons actually separate buttons in the buttons array?
 
 The following are the default properties:
 ```json
@@ -256,8 +253,8 @@ This section covers the mappings for all known XR controllers including those wi
             },
             {
                 "component" : 1,
-                "rootNode" : "trigger-node",
-                "labelNode" : "trigger-label-node",
+                "rootNode" : "thumbstick-node",
+                "labelNode" : "thumbstick-label-node",
                 "thumbstickMotion" : {
                     "target" : "thumbstick-transform-node",
                     "left" : "thumbstick-transform-left-node",
@@ -429,99 +426,183 @@ This section covers the mappings for all known XR controllers including those wi
 "OculusTouch" : {
     "name" : "Oculus Touch",
     "mapping" : "xr-standard",
+    "hands" : {
+        "left" : {
+            "components" : [0, 1, 2, 3, 4, 7],
+            "primaryButton" : 0,
+            "primaryAxes" : 1
+        },
+        "right" : {
+            "components" : [0, 1, 2, 5, 6, 7],
+            "primaryButton" : 0,
+            "primaryAxes" : 1
+        }
+    },
     "components" : [
         {
             "name" : "thumbstick",
-            "buttonsIndex" : 0,
-            "nodeName" : "thumbstick-model-node",
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : true,
-            "xAxis" : { // I don't actually see this documented anywhere?
-                "axisIndex" : 0,
-                "analog" : true,
-                "left" : 0,
-                "right" : 1
-            },
-            "yAxis" : {
-                "axisIndex" : 1,
-                "analog" : true,
-                "down" : 0,
-                "up" : 1
+            "thumbstick" : {
+                "xAxis" : { // I don't actually see this documented anywhere?
+                    "gamepadAxisIndex" : 0,
+                    "left" : 0,
+                    "right" : 1
+                },
+                "yAxis" : {
+                    "gamepadAxisIndex" : 1,
+                    "down" : 0,
+                    "up" : 1
+                },
+                "centerButton" : {
+                    "gamepadButtonIndex" : 0,
+                    // Is this touchable?
+                }
             }
         },
         {
             "name" : "trigger",
-            "buttonsIndex" : 1,
-            "nodeName" : "trigger-model-node",
-            "analog" : true,
-            "clickable" : true,
-            "touchable" : true,
+            "button" : {
+                "gamepadButtonIndex" : 1,
+                "analogValues" : true,
+            }
         },
         {
             "name" : "grip",
-            "buttonsIndex" : 2,
-            "nodeName" : "grip-model-node",
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : false,
+            "button" : {
+                "gamepadButtonIndex" : 2,
+                "supportsTouch" : false,
+            }
         },
         {
             "name" : "x",
-            "buttonsIndex" : 3,
-            "nodeName" : "x-model-node",
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : true,
+            "button" : {
+                "gamepadButtonIndex" : 3,
+                "supportsTouch" : false,
+            }
         },
         {
             "name" : "y",
-            "buttonsIndex" : 4,
-            "nodeName" : "y-model-node",
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : true,
+            "button" : {
+                "gamepadButtonIndex" : 4,
+                "supportsTouch" : false,
+            }
         },
         {
             "name" : "a",
-            "buttonsIndex" : 3,
-            "nodeName" : "a-model-node",
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : true,
+            "button" : {
+                "gamepadButtonIndex" : 3,
+                "supportsTouch" : false,
+            }
         },
         {
             "name" : "b",
-            "buttonsIndex" : 4,
-            "nodeName" : "b-model-node",
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : true,
+            "button" : {
+                "gamepadButtonIndex" : 4,
+                "supportsTouch" : false,
+            }
         },
         { // Couldn't find this one documented anywhere
             "name" : "thumbrest",
-            "buttonsIndex" : 5,
-            "analog" : false,
-            "touchable" : true,
-            "clickable" : false,
-        },
-    ],
-    "assets" : [
-        "Some uri"
-    ],
-    "hands" : {
-        "left" : {
-            "components" : [0, 1, 2, 3, 4, 7],
-            "primary" : [0, 1],
-            "assetId" : 0,
-            "nodeName" : "left",
-        },
-        "right" : {
-            "components" : [0, 1, 2, 5, 6, 7],
-            "primary" : [0, 1],
-            "assetId" : 0,
-            "nodeName" : "right",
+            "button" : {
+                "gamepadButtonIndex" : 5,
+                "supportsPress" : false,
+            }
         }
+    ],
+    "assets" : {
+        "leftHand" : {
+            "asset" : "some uri",
+            "rootNode" : "left-controller-node"
+        },
+        "rightHand" : {
+            "asset" : "some uri",
+            "rootNode" : "right-controller-node"
+        },
+        "visualizationNodes" : [
+            {
+                "component" : 0,
+                "rootNode" : "thumbstick-node",
+                "labelNode" : "thumbstick-label-node",
+                "thumbstickMotion" : {
+                    "target" : "thumbstick-transform-node",
+                    "left" : "thumbstick-transform-left-node",
+                    "right" : "thumbstick-right-transform-right-node",
+                    "up" : "thumbstick-transform-up-node",
+                    "down" : "thumbstick-transform-down-node",
+                    "centerMin" : "thumbstick-transform-centerMin-node",
+                    "centerMax" : "thumbstick-transform-centerMax-node",
+                }
+            },
+            {
+                "component" : 1,
+                "rootNode" : "trigger-node",
+                "labelNode" : "trigger-label-node",
+                "buttonMotion" : {
+                    "target" : "trigger-transform-node",
+                    "min" : "trigger-min-transform-node",
+                    "max" : "trigger-max-transform-node",
+                }
+            },
+            {
+                "component" : 2,
+                "rootNode" : "grip-node",
+                "labelNode" : "grip-label-node",
+                "buttonMotion" : {
+                    "target" : "grip-transform-node",
+                    "min" : "grip-min-transform-node",
+                    "max" : "grip-max-transform-node",
+                }
+            },
+            {
+                "component" : 3,
+                "rootNode" : "x-node",
+                "labelNode" : "x-label-node",
+                "buttonMotion" : {
+                    "target" : "x-transform-node",
+                    "min" : "x-min-transform-node",
+                    "max" : "x-max-transform-node",
+                }
+            },
+            {
+                "component" : 4,
+                "rootNode" : "y-node",
+                "labelNode" : "y-label-node",
+                "buttonMotion" : {
+                    "target" : "y-transform-node",
+                    "min" : "y-min-transform-node",
+                    "max" : "y-max-transform-node",
+                }
+            },
+            {
+                "component" : 5,
+                "rootNode" : "a-node",
+                "labelNode" : "a-label-node",
+                "buttonMotion" : {
+                    "target" : "a-transform-node",
+                    "min" : "a-min-transform-node",
+                    "max" : "a-max-transform-node",
+                }
+            },
+            {
+                "component" : 6,
+                "rootNode" : "b-node",
+                "labelNode" : "b-label-node",
+                "buttonMotion" : {
+                    "target" : "b-transform-node",
+                    "min" : "b-min-transform-node",
+                    "max" : "b-max-transform-node",
+                }
+            },
+            {
+                "component" : 7,
+                "rootNode" : "thumbrest-node",
+                "labelNode" : "thumbrest-label-node",
+                "touchpadMotion" : {
+                    "target" : "thumbrest-touchpoint-node",
+                    "min" : "thumbrest-min-touchpoint-node",
+                    "max" : "thumbrest-max-touchpoint-node",
+                }
+            },
+        ],
     }
 }
 ```
