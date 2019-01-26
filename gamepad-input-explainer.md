@@ -3,7 +3,7 @@
 ## Overview
 This explains the purpose of this document
 
-### Notes:
+### Notes/questions that drove design
 * Model to render
 * Buttons
 * Types of buttons (trigger, grip, touchpad. thumbstick, etc)
@@ -21,17 +21,91 @@ This explains the purpose of this document
   * Vive seems to also treat trackpad regions as "being buttons"
   * figure out how to represent trackpad edge clicks
 
-## Schema explanation
+# Schema explanation
 FILL ME IN
+```json
+{
+    "version" : "",
+    "gamepads" : [],
+    "user-agent-overrides" : []
+}
+```
 
-### General
+## Gamepads
 FILL ME IN
+```json
+{
+    "gamepads" : [
+        {
+            "<id of gamepad>" : {
+                "name" : "<friendly name of gamepad>",
+                "mapping" : "xr-standard",
+                "hands" : {},
+                "components" : [],
+                "assets" : {}
+            }
+        }
+    ]
+}
+```
 
 ### Hands
-FILL ME IN
+For motion controllers that report a handedness property
+```json
+"hands" : {
+    "left" : {
+        "components" : [#],
+        "primaryButton" : #,
+        "primaryAxes" : #
+    },
+    "right" : {
+        "components" : [#],
+        "primaryButton" : #,
+        "primaryAxes" : #
+    }
+}
+```
+
+For motion controllers than can't distinguish right vs left
+```json
+"hands" : {
+    "neutral" : {
+        "components" : [#],
+        "primaryButton" : #,
+        "primaryAxes" : #
+    }
+}
+```
 
 ### Components
-FILL ME IN
+```json
+"components" : [
+    {
+        "name" : "<friendly name>",
+        "button" : {
+
+        }
+    },
+    {
+        "name" : "<friendly name>",
+        "thumbstick" : {
+            
+        }
+    }
+    {
+        "name" : "<friendly name>",
+        "dpad" : {
+            
+        }
+    }
+    {
+        "name" : "<friendly name>",
+        "touchpad" : {
+            
+        }
+    }
+]
+```
 
 #### Buttons
 Buttons have two styles: analog or binary.  Analog buttons report analog values in a range from `min` to `max`. If the component has `supportsTouch == true`, it MUST report `touched` for `value` > `min`, but MAY also report `touched` for `value` == `min`. Binary buttons only report one of two values. If the component has `supportsTouch == true`, it MUST report `touched` for `value` == `max`, but MAY also report `touched` for `value` == `min`. 
@@ -159,12 +233,72 @@ The following are the default properties:
 ```
 ### Assets
 FILL ME IN
+Note that for this section, the two rootNodes could also be the same
+```json
+"assets" : {
+    "leftHand" : {
+        "asset" : "some uri",
+        "rootNode" : "left-controller-node"
+    },
+    "rightHand" : {
+        "asset" : "some uri",
+        "rootNode" : "right-controller-node"
+    },
+    "visualizationNodes" : []
+}
+```
+OR
 
-#### Visualizations
+```json
+"assets" : {
+    "neutralHand" : {
+        "asset" : "some uri",
+        "rootNode" : "node in the asset to go at gripSpace origin"
+    },
+    "visualizationNodes" : [
+        {
+            "component" : #,
+            "rootNode" : "<node in the asset of the component's root>",
+            "labelNode" : "<node in the asset to place a usage label>",
+            "buttonMotion" : {}
+        },
+        {
+            "component" : #,
+            "rootNode" : "<node in the asset of the component's root>",
+            "labelNode" : "<node in the asset to place a usage label>",
+            "thumbstickMotion" : {}
+        },
+        {
+            "component" : #,
+            "rootNode" : "<node in the asset of the component's root>",
+            "labelNode" : "<node in the asset to place a usage label>",
+            "dpadMotion" : {}
+        },
+        {
+            "component" : #,
+            "rootNode" : "<node in the asset of the component's root>",
+            "labelNode" : "<node in the asset to place a usage label>",
+            "touchpadMotion" : {}
+        },
+        {
+            "component" : #,
+            "rootNode" : "<node in the asset of the component's root>",
+            "labelNode" : "<node in the asset to place a usage label>",
+            "dpadMotion" : {},
+            "touchpadMotion" : {}
+        }
+    ]
+}
+```
+
+#### Motion types
 FILL ME IN
 
-## Known XR gamepad inventory
-This section covers the mappings for all known XR controllers including those without independent tracking
+## User-agent overrides
+FILL ME IN - and design me
+
+# Known XR gamepad inventory
+This section covers the mappings for all known XR controllers
 
 ### Windows Mixed Reality
 ```json
