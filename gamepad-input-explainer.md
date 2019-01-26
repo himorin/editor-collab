@@ -695,60 +695,6 @@ This section covers the mappings for all known XR controllers including those wi
 }
 ```
 
-### Oculus Remote
-```json
-"OculusRemote" : { 
-    "name" : "Oculus Remote",
-    "mapping" : "",
-    "components" : [
-        {
-            "name" : "button",
-            "buttonsIndex" : 0,
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : false,
-        },
-        {
-            "name" : "thumbstick",
-            "buttonsIndex" : 0,
-            "analog" : false,
-            "clickable" : false,
-            "touchable" : false,
-            "xAxis" : {
-                "axisIndex" : 0,
-                "analog" : false,
-                "left" : -1,
-                "right" : 1
-            },
-            "yAxis" : {
-                "axisIndex" : 1,
-                "analog" : false,
-                "down" : -1,
-                "up" : 1
-            }
-        },
-        {
-            "name" : "back",
-            "buttonsIndex" : 1,
-            "analog" : false,
-            "clickable" : true,
-            "touchable" : false,
-        },
-    ],
-    "assets" : [
-        "Some uri"
-    ],
-    "hands" : {
-        "neutral" : {
-            "components" : [0, 1],
-            "primary" : [0],
-            "assetId" : 0,
-            "nodeName" : "neutral",
-        }
-    }
-}
-```
-
 ### HTC Vive
 ```json
 "HTCViveController" : {
@@ -884,7 +830,10 @@ FILL ME IN
 FILL ME IN
 
 ### HoloLens Clicker
-Should this be included?  Should the Oculus Remote be removed?
+Should this be included?  
+
+### Oculus Remote
+Should this be included?  
 
 ## Appendices
 
