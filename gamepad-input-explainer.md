@@ -700,52 +700,100 @@ This section covers the mappings for all known XR controllers including those wi
 "HTCViveController" : {
     "name" : "HTC Vive Controller",
     "mapping" : "xr-standard",
+    "hands" : {
+        "neutral" : {
+            "components" : [ 0, 1, 2],
+            "primaryButton" : 0,
+            "primaryAxes" : 0
+        },
+    },
     "components" : [
         {
             "name" : "trackpad",
-            "buttonsIndex" : 0,
-            "nodeName" : "trackpad-model-node",
-            "analog" : true,
-            "clickable" : true,
-            "touchable" : true,
-            "xAxis" : {
-                "axisIndex" : 0,
-                "analog" : true,
-                "left" : -1,
-                "right" : 1
-            },
-            "yAxis" : {
-                "axisIndex" : 1,
-                "analog" : true,
-                "down" : -1,
-                "up" : 1
+            "touchpad" : {
+                "xAxis" : {
+                    "gamepadAxisIndex" : 0,
+                },
+                "yAxis" : {
+                    "gamepadAxisIndex" : 1,
+                },
+                "dpad" : {
+                    "leftButton" : {
+                        "gamepadButtonIndex" : 3,
+                    },
+                    "rightButton" : {
+                        "gamepadButtonIndex" : 4,
+                    },
+                    "downButton" : {
+                        "gamepadButtonIndex" : 5,
+                    },
+                    "upButton" : {
+                        "gamepadButtonIndex" : 6,
+                    },
+                    "centerButton" : {
+                        "gamepadButtonIndex" : 0,
+                    }
+                }
             }
         },
         {
             "name" : "trigger",
-            "buttonsIndex" : 1,
-            "clickable" : true,
-            "touchable" : true,
-            "analog" : true,
+            "gamepadButtonIndex" : 1,
+            "analogValues" : true,
         },
         {
             "name" : "grip",
-            "buttonsIndex" : 2,
-            "analog" : false,
-            "touchable" : false,
-            "clickable" : true,
+            "gamepadButtonIndex" : 2,
+            "supportsTouch" : false
         },
     ],
-    "assets" : [
-        "Some uri"
-    ],
-    "hands" : {
-        "neutral" : {
-            "components" : [0, 1, 2],
-            "primary" : [1],
-            "assetId" : 0,
-            "nodeName" : "neutral",
-        }
+    "assets" : {
+        "neutralHand" : {
+            "asset" : "some uri",
+            "rootNode" : "neutral-controller-node"
+        },
+        "visualizationNodes" : [
+            {
+                "component" : 0,
+                "rootNode" : "touchpad-node",
+                "labelNode" : "touchpad-label-node",
+                "dpadMotion" : {
+                    "target" : "touchpad-transform-node",
+                    "left" : "touchpad-transform-left-node",
+                    "right" : "touchpad-transform-right-node",
+                    "up" : "touchpad-transform-up-node",
+                    "down" : "touchpad-transform-down-node",
+                    "center" : "touchpad-transform-center-node"
+                },
+                "touchpadMotion" : {
+                    "target" : "touchpad-touchpoint-node",
+                    "left" : "touchpad-touchpoint-left-node",
+                    "right" : "touchpad-touchpoint-right-node",
+                    "up" : "touchpad-touchpoint-up-node",
+                    "down" : "touchpad-touchpoint-down-node"
+                }
+            },
+            {
+                "component" : 1,
+                "rootNode" : "trigger-node",
+                "labelNode" : "trigger-label-node",
+                "buttonMotion" : {
+                    "target" : "trigger-transform-node",
+                    "min" : "trigger-min-transform-node",
+                    "max" : "trigger-max-transform-node",
+                }
+            },
+            {
+                "component" : 1,
+                "rootNode" : "grip-node",
+                "labelNode" : "grip-label-node",
+                "buttonMotion" : {
+                    "target" : "grip-transform-node",
+                    "min" : "grip-min-transform-node",
+                    "max" : "grip-max-transform-node",
+                }
+            },
+        ],
     }
 }
 ```
@@ -755,64 +803,110 @@ This section covers the mappings for all known XR controllers including those wi
 "Knuckles" : {
     "name" : "Valve Knuckles Controller",
     "mapping" : "xr-standard",
+    "hands" : {
+        "left" : {
+            "components" : [0, 1, 2, 3],
+            "primaryButton" : 0,
+            "primaryAxes" : 0
+        },
+        "right" : {
+            "components" : [0, 1, 2, 3],
+            "primaryButton" : 0,
+            "primaryAxes" : 0
+        }
+    },
     "components" : [
         {
             "name" : "trackpad",
-            "buttonsIndex" : 0,
-            "analog" : true,
-            "clickable" : true,
-            "touchable" : true,
-            "xAxis" : {
-                "axisIndex" : 0,
-                "analog" : true,
-                "left" : -1,
-                "right" : 1
-            },
-            "yAxis" : {
-                "axisIndex" : 1,
-                "analog" : true,
-                "down" : -1,
-                "up" : 1
+            "touchpad" : {
+                "xAxis" : {
+                    "gamepadAxisIndex" : 0,
+                },
+                "yAxis" : {
+                    "gamepadAxisIndex" : 1,
+                },
+                "dpad" : {
+                    "centerButton" : {
+                        "gamepadButtonIndex" : 0,
+                    }
+                }
             }
         },
         {
             "name" : "trigger",
-            "buttonsIndex" : 1,
-            "clickable" : true,
-            "touchable" : true,
-            "analog" : true,
+            "button" : {
+                "gamepadButtonIndex" : 1,
+                "analogValues" : true,
+            }
         },
         {
             "name" : "innerFaceButton",
-            "buttonsIndex" : 2,
-            "analog" : false,
-            "touchable" : false,
-            "clickable" : true,
+            "gamepadButtonIndex" : 2,
+            "supportsTouch" : false
         },
         {
             "name" : "outerFaceButton",
-            "buttonsIndex" : 3,
-            "analog" : false,
-            "touchable" : false,
-            "clickable" : true,
-        },
-    ],
-    "assets" : [
-        "Some uri"
-    ],
-    "hands" : {
-        "left" : {
-            "components" : [0, 1, 2, 3],
-            "primary" : [1],
-            "assetId" : 0,
-            "nodeName" : "left",
-        },
-        "right" : {
-            "components" : [0, 1, 2, 3],
-            "primary" : [1],
-            "assetId" : 0,
-            "nodeName" : "right",
+            "gamepadButtonIndex" : 3,
+            "supportsTouch" : false
         }
+    ],
+    "assets" : {
+        "leftHand" : {
+            "asset" : "some uri",
+            "rootNode" : "left-controller-node"
+        },
+        "rightHand" : {
+            "asset" : "some uri",
+            "rootNode" : "right-controller-node"
+        },
+        "visualizationNodes" : [
+            {
+                "component" : 0,
+                "rootNode" : "touchpad-node",
+                "labelNode" : "touchpad-label-node",
+                "dpadMotion" : {
+                    "target" : "touchpad-transform-node",
+                    "center" : "touchpad-transform-center-node"
+                },
+                "touchpadMotion" : {
+                    "target" : "touchpad-touchpoint-node",
+                    "left" : "touchpad-touchpoint-left-node",
+                    "right" : "touchpad-touchpoint-right-node",
+                    "up" : "touchpad-touchpoint-up-node",
+                    "down" : "touchpad-touchpoint-down-node"
+                }
+            },
+            {
+                "component" : 1,
+                "rootNode" : "trigger-node",
+                "labelNode" : "trigger-label-node",
+                "buttonMotion" : {
+                    "target" : "trigger-transform-node",
+                    "min" : "trigger-min-transform-node",
+                    "max" : "trigger-max-transform-node",
+                }
+            },
+            {
+                "component" : 2,
+                "rootNode" : "innerFaceButton-node",
+                "labelNode" : "innerFaceButton-label-node",
+                "buttonMotion" : {
+                    "target" : "innerFaceButton-transform-node",
+                    "min" : "innerFaceButton-min-transform-node",
+                    "max" : "innerFaceButton-max-transform-node",
+                }
+            },
+            {
+                "component" : 3,
+                "rootNode" : "outerFaceButton-node",
+                "labelNode" : "outerFaceButton-label-node",
+                "buttonMotion" : {
+                    "target" : "outerFaceButton-transform-node",
+                    "min" : "outerFaceButton-min-transform-node",
+                    "max" : "outerFaceButton-max-transform-node",
+                }
+            }
+        ],
     }
 }
 ```
