@@ -423,7 +423,8 @@ This section covers the mappings for all known XR controllers
                     "right" : "touchpad-transform-right-node",
                     "up" : "touchpad-transform-up-node",
                     "down" : "touchpad-transform-down-node",
-                    "center" : "touchpad-transform-center-node"
+                    "centerMin" : "touchpad-transform-centerMin-node",
+                    "centerMax" : "touchpad-transform-centerMax-node"
                 },
                 "touchpadMotion" : {
                     "target" : "touchpad-touchpoint-node",
@@ -734,7 +735,7 @@ This section covers the mappings for all known XR controllers
                 "component" : 7,
                 "rootNode" : "thumbrest-node",
                 "labelNode" : "thumbrest-label-node",
-                "touchpadMotion" : {
+                "buttonMotion" : {
                     "target" : "thumbrest-touchpoint-node",
                     "min" : "thumbrest-min-touchpoint-node",
                     "max" : "thumbrest-max-touchpoint-node",
@@ -808,7 +809,8 @@ This section covers the mappings for all known XR controllers
                     "right" : "touchpad-transform-right-node",
                     "up" : "touchpad-transform-up-node",
                     "down" : "touchpad-transform-down-node",
-                    "center" : "touchpad-transform-center-node"
+                    "centerMin" : "touchpad-transform-centerMin-node",
+                    "centerMax" : "touchpad-transform-centerMax-node"
                 },
                 "touchpadMotion" : {
                     "target" : "touchpad-touchpoint-node",
@@ -901,7 +903,8 @@ This section covers the mappings for all known XR controllers
                     "right" : "touchpad-transform-right-node",
                     "up" : "touchpad-transform-up-node",
                     "down" : "touchpad-transform-down-node",
-                    "center" : "touchpad-transform-center-node"
+                    "centerMin" : "touchpad-transform-centerMin-node",
+                    "centerMax" : "touchpad-transform-centerMax-node"
                 },
                 "touchpadMotion" : {
                     "target" : "touchpad-touchpoint-node",
@@ -1004,7 +1007,8 @@ This section covers the mappings for all known XR controllers
                 "labelNode" : "touchpad-label-node",
                 "dpadMotion" : {
                     "target" : "touchpad-transform-node",
-                    "center" : "touchpad-transform-center-node"
+                    "centerMin" : "touchpad-transform-centerMin-node",
+                    "centerMax" : "touchpad-transform-centerMax-node"
                 },
                 "touchpadMotion" : {
                     "target" : "touchpad-touchpoint-node",
