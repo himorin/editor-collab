@@ -1,7 +1,12 @@
 # Gamepads in WebXR
+This proposal goes in tandem with [PR #26](https://github.com/immersive-web/editor-collab/pull/26).
+
+On the Web, the [`Gamepad` API](https://www.w3.org/TR/gamepad/) is used to provide access to multi-button input devices that aren't mice.
 
 ## Overview
 This explains the purpose of this document
+
+When working with an `XRInputSource` with a `gamepad` member, it's often important to 
 
 ### Notes/questions that drove design
 * Model to render
@@ -1079,3 +1084,4 @@ Should this be included?
 * [Unity - Manual:  Input for OpenVR controllers](https://docs.unity3d.com/Manual/OpenVRControllers.html)
 * [Steam VR Template -        Unreal Engine Forums](https://forums.unrealengine.com/development-discussion/vr-ar-development/78620-steam-vr-template?106609-Steam-VR-Template=)
 * [Mapping Oculus Controller Input to Blueprint Events](https://developer.oculus.com/documentation/unreal/latest/concepts/unreal-controller-input-mapping-reference/)
+* [Events in the Gamepad spec?](https://github.com/w3c/gamepad/pull/15)
