@@ -43,8 +43,8 @@ FILL ME IN
     "gamepad" : {
         "id" : "<Gamepad object's ID>",
         "hands" : {},
-        "components" : [],
-        "assets" : {}
+        "dataSources" : [],
+        "visualResponses" : []
     }
 }
 ```
@@ -53,41 +53,63 @@ FILL ME IN
 For motion controllers that report a handedness property
 ```json
 "hands" : {
-    "left" : {
-        "components" : [#],
-        "primaryButton" : #,
-        "primaryAxes" : #
-    },
-    "right" : {
-        "components" : [#],
-        "primaryButton" : #,
-        "primaryAxes" : #
-    }
+    "left" : {},
+    "right" : {}
 }
 ```
 
 For motion controllers than can't distinguish right vs left
 ```json
 "hands" : {
-    "neutral" : {
-        "components" : [#],
-        "primaryButton" : #,
-        "primaryAxes" : #
-    }
+    "neutral" : {}
 }
 ```
 
-### Components
-FILL ME IN
+The description of the hands data goes HERE
+```json
+{
+    "asset" : "",
+    "rootId" : "<id of the model's root node in asset",
+    "components" : [],
+    "primaryButton" : #,
+    "primaryAxes" : #
+}
+```
+#### Components
+```json
+"components" : [
+    {
+        "dataSource" : #,
+        "rootId" : "<id of component's root node in the model>",
+        "labelTransformId" : "<id of the component's label transform in asset>",
+        "visualResponse" : #
+    }
+]
+```
+
+### Data Sources
+EXPLAIN ME
+
+```json
+"dataSources" : [
+    {
+        "button" : {},
+        "dpad" : {},
+        "thumbstick" : {},
+        "touchpad" : {}
+    }
+]
+```
 
 #### Buttons
-Buttons have two styles: analog or binary.  Analog buttons report analog values in a range from `min` to `max`. If the component has `supportsTouch == true`, it MUST report `touched` for `value` > `min`, but MAY also report `touched` for `value` == `min`. Binary buttons only report one of two values. If the component has `supportsTouch == true`, it MUST report `touched` for `value` == `max`, but MAY also report `touched` for `value` == `min`. 
+Buttons have two styles: analog or binary.  Analog buttons report analog values in a range from `min` to `max`. If the data source has `supportsTouch == true`, it MUST report `touched` for `value` > `min`, but MAY also report `touched` for `value` == `min`. Binary buttons only report one of two values. If the data source has `supportsTouch == true`, it MUST report `touched` for `value` == `max`, but MAY also report `touched` for `value` == `min`. 
 
 The `button.gamepadButtonsIndex` value must be present for the `button` to be valid.  This value maps to the index into the matching `Gamepad`'s `buttons` array.
 
 The following are the default properties:
+
 ```json
-"components" : [
+"dataSources" : [
     {
         "button" : {
             "supportsTouch" : true,
@@ -103,11 +125,11 @@ The following are the default properties:
 ```
 
 #### Dpad
-Dpads are a switch style component.  If a left button and a right button are present, only one can be pressed at a time.  If an up button and a down button are present, only one can be pressed at the same time.
+Dpads are a switch style data source.  If a left button and a right button are present, only one can be pressed at a time.  If an up button and a down button are present, only one can be pressed at the same time.
 
 The following are the default properties:
 ```json
-"components" : [
+"dataSources" : [
     {
         "dpad" : {
             "supportsTouch" : false,
@@ -136,7 +158,7 @@ A `thumbstick` may also have a `button`. If so, the `button.gamepadButtonsIndex`
 
 The following are the default properties:
 ```json
-"components" : [
+"dataSources" : [
     {
         "thumbstick" : {
             "xAxis" : {
@@ -174,9 +196,9 @@ A `touchpad` may also have a `button`. If so, the `button` must be valid for the
 
 The following are the default properties:
 ```json
-"components" : [
+"dataSources" : [
     {
-        "trackpad" : {
+        "touchpad" : {
             "xAxis" : {
                 "defaultValue" : 0,
                 "leftValue" : -1,
@@ -202,71 +224,78 @@ The following are the default properties:
     }
 ]
 ```
-### Assets
-FILL ME IN
-Note that for this section, the two rootNodes could also be the same
-```json
-"assets" : {
-    "hands" : {
-        "left" : {},
-        "right" : {},
-        "neutral" : {}
-    },
-    "mappings" : [],
-    "motions" : []
-}
-```
-OR
 
-```json
-"hand" : {
-    "asset" : "",
-    "rootId" : "<id of the model's root node in asset",
-    "components" : [
-        {
-            "componentId" : #,
-            "rootId" : "<id of the component's root node in asset>",
-            "labelTransformId" : "<id of the component's label transform in asset>",
-            "motion" : #
-        }
-    ]
-}
-```
-
-#### Motion types
+### Reactions
 FILL ME IN
 ```json
-"motions" : [
+"responses" : [
     {
-        "buttonMotion" : {},
-        "dpadMotion" : {},
-        "thumbstickMotion" : {},
-        "touchpadMotion" : {}
+        "buttonResponse" : {},
+        "dpadResponse" : {},
+        "thumbstickResponse" : {},
+        "touchpadResponse" : {}
     }
 ]
 ```
 
 FILL ME IN
 ```json
-"buttonMotion" : {
-    "target" : "<button transform id>"
-
+"buttonPress" : {
+    "target" : "<element to be modified>",
+    "default" : "<the button's default visual state>",
+    "min" : "<the button's minimum visual state>",
+    "max" : "<the button's maximum visual state>",
 }
 ```
 
 FILL ME IN
 ```json
-"dpadMotion" : {}
+"dpadPress" : {
+    "target" : "<element to be modified>",
+    "default" : "<the dpad's default visual state>",
+    "left" : "<the dpad's left button's maximum visual state>",
+    "right" : "<the dpad's right button's maximum visual state>",
+    "down" : "<the dpad's down button's maximum visual state>",
+    "up" : "<the dpad's up button's maximum visual state>"
+}
 ```
 
 FILL ME IN
 ```json
-"thumbstickMotion" : {}
+"thumbstickTouch" : {
+    "target" : "<element to be modified>",
+    "default" : "<the thumbstick's default visual state>",
+    "left" : "<the thumbstick's xAxis's left-most visual state>",
+    "right" : "<the thumbstick's xAxis's right-most visual state>",
+    "down" : "<the thumbstick's yAxis's down-most visual state>",
+    "up" : "<the thumbstick's yAxis's down-most visual state>",
+    "min" : "<the thumbstick's button's minimum visual state>",
+    "max" : "<the thumbstick's button's maximum visual state>",
+}
 ```
 
 FILL ME IN
 ```json
-"touchpadMotion" : {}
+"touchpadPress" : {
+    "target" : "<element to be modified>",
+    "default" : "<the touchpad's default visual state>",
+    "left" : "<the visual state of a press on the touchpad's left>",
+    "right" : "<the visual state of a press on the touchpad's right>",
+    "down" : "<the visual state of a press on the touchpad's down>",
+    "up" : "<the visual state of a press on the touchpad's up>"
+}
+```
+
+FILL ME IN
+```json
+"touchpadTouch" : {
+    "target" : "<element to be modified>",
+    "default" : "<the touchpad's default visual state>",
+    "left" : "<the visual state of a touch on the touchpad's left>",
+    "right" : "<the visual state of a touch on the touchpad's right>",
+    "down" : "<the visual state of a touch on the touchpad's down>",
+    "up" : "<the visual state of a touch on the touchpad's up>"
+}
 ```
 
 ## User-agent overrides
@@ -291,7 +320,7 @@ This section covers the mappings for all known XR controllers
             "primaryAxes" : 1
         }
     },
-    "components" : [
+    "dataSources" : [
         {
             "name" : "trigger",
             "button" : {
@@ -437,7 +466,7 @@ This section covers the mappings for all known XR controllers
             "primaryAxes" : 0
         }
     },
-    "components" : [
+    "dataSources" : [
         {
             "name" : "thumbstick",
             "touchpad" : {
@@ -533,7 +562,7 @@ This section covers the mappings for all known XR controllers
             "primaryAxes" : 1
         }
     },
-    "components" : [
+    "dataSources" : [
         {
             "name" : "thumbstick",
             "thumbstick" : {
@@ -713,7 +742,7 @@ This section covers the mappings for all known XR controllers
             "primaryAxes" : 0
         },
     },
-    "components" : [
+    "dataSources" : [
         {
             "name" : "thumbstick",
             "touchpad" : {
@@ -787,7 +816,7 @@ This section covers the mappings for all known XR controllers
             "primaryAxes" : 0
         },
     },
-    "components" : [
+    "dataSources" : [
         {
             "name" : "trackpad",
             "touchpad" : {
@@ -881,7 +910,7 @@ This section covers the mappings for all known XR controllers
             "primaryAxes" : 0
         }
     },
-    "components" : [
+    "dataSources" : [
         {
             "name" : "trackpad",
             "touchpad" : {
