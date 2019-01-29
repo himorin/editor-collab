@@ -231,7 +231,7 @@ The following are the default properties:
 ]
 ```
 
-### Reactions
+### Responses
 FILL ME IN
 ```json
 "responses" : [
@@ -311,95 +311,6 @@ FILL ME IN - and design me
 
 # Known XR gamepad inventory
 This section covers the mappings for all known XR controllers
-
-### HTC Vive
-```json
-"gamepad" : {
-    "id" : "HTC-Vive-Controller",
-    "hands" : {
-        "neutral" : {
-            "components" : [ 0, 1, 2],
-            "primaryButton" : 0,
-            "primaryAxes" : 0
-        },
-    },
-    "dataSources" : [
-        {
-            "name" : "trackpad",
-            "touchpad" : {
-                "xAxis" : {
-                    "gamepadAxisIndex" : 0,
-                },
-                "yAxis" : {
-                    "gamepadAxisIndex" : 1,
-                },
-                "button" : {
-                    "gamepadButtonIndex" : 0,
-                }
-            }
-        },
-        {
-            "name" : "trigger",
-            "gamepadButtonIndex" : 1,
-            "analogValues" : true,
-        },
-        {
-            "name" : "grip",
-            "gamepadButtonIndex" : 2,
-            "supportsTouch" : false
-        },
-    ],
-    "assets" : {
-        "neutralHand" : {
-            "asset" : "some uri",
-            "rootNode" : "neutral-controller-node"
-        },
-        "visualizationNodes" : [
-            {
-                "component" : 0,
-                "rootNode" : "touchpad-node",
-                "labelNode" : "touchpad-label-node",
-                "dpadMotion" : {
-                    "target" : "touchpad-transform-node",
-                    "left" : "touchpad-transform-left-node",
-                    "right" : "touchpad-transform-right-node",
-                    "up" : "touchpad-transform-up-node",
-                    "down" : "touchpad-transform-down-node",
-                    "centerMin" : "touchpad-transform-centerMin-node",
-                    "centerMax" : "touchpad-transform-centerMax-node"
-                },
-                "touchpadMotion" : {
-                    "target" : "touchpad-touchpoint-node",
-                    "left" : "touchpad-touchpoint-left-node",
-                    "right" : "touchpad-touchpoint-right-node",
-                    "up" : "touchpad-touchpoint-up-node",
-                    "down" : "touchpad-touchpoint-down-node"
-                }
-            },
-            {
-                "component" : 1,
-                "rootNode" : "trigger-node",
-                "labelNode" : "trigger-label-node",
-                "buttonMotion" : {
-                    "target" : "trigger-transform-node",
-                    "min" : "trigger-min-transform-node",
-                    "max" : "trigger-max-transform-node",
-                }
-            },
-            {
-                "component" : 1,
-                "rootNode" : "grip-node",
-                "labelNode" : "grip-label-node",
-                "buttonMotion" : {
-                    "target" : "grip-transform-node",
-                    "min" : "grip-min-transform-node",
-                    "max" : "grip-max-transform-node",
-                }
-            },
-        ],
-    }
-}
-```
 
 ### Valve Knuckles
 ```json

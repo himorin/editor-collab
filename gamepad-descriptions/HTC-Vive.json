@@ -1,10 +1,10 @@
 {
     "version" : 0.1,
     "gamepad" : {
-        "id" : "Gear-VR",
+        "id" : "HTC-Vive-Controller",
         "hands" : {
             "neutral" : {
-                "components" : [0, 1, 2],
+                "components" : [ 0, 1, 2],
                 "primaryButton" : 0,
                 "primaryAxes" : 0
             }
@@ -12,37 +12,50 @@
         "components" : [
             {
                 "dataSource" : 0,
-                "rootId" : "thumbstick-node",
-                "labelTransformId" : "thumbstick-label-transform",
+                "rootId" : "trackpad-node",
+                "labelTransformId" : "trackpad-label-transform",
                 "pressResponse" : 0,
                 "touchResponse" : 1
             },
             {
                 "dataSource" : 1,
+                "rootId" : "trigger-node",
+                "labelTransformId" : "trigger-label-transform",
+                "pressResponse" : 2
+            },
+            {
+                "dataSource" : 2,
                 "rootId" : "faceButton-node",
                 "labelTransformId" : "faceButton-label-transform",
-                "pressResponse" : 2
+                "pressResponse" : 3
             }
         ],
         "dataSources" : [
             {
                 "touchpad" : {
-                    "id" : "thumbstick",
+                    "id" : "trackpad",
                     "xAxis" : {
-                        "gamepadAxesIndex" : 0
+                        "gamepadAxisIndex" : 0
                     },
                     "yAxis" : {
-                        "gamepadAxesIndex" : 1
+                        "gamepadAxisIndex" : 1
                     },
                     "button" : {
-                        "gamepadButtonsIndex" : 0
+                        "gamepadButtonIndex" : 0
                     }
                 }
             },
             {
                 "button" : {
-                    "name" : "faceButton",
-                    "gamepadButtonsIndex" : 2,
+                    "id" : "trigger",
+                    "gamepadButtonIndex" : 1,
+                    "analogValues" : true
+                }
+            },
+            {
+                "button" : {
+                    "id" : "grip",
+                    "gamepadButtonIndex" : 2,
                     "supportsTouch" : false
                 }
             }
@@ -70,9 +83,18 @@
             },
             {
                 "buttonPress" : {
-                    "target" : "faceButton-transform-node",
-                    "min" : "faceButton-min-transform-node",
-                    "max" : "faceButton-max-transform-node"
+                    "target" : "trigger-transform-node",
+                    "default" : "trigger-default-transform-node",
+                    "min" : "trigger-min-transform-node",
+                    "max" : "trigger-max-transform-node"
+                }
+            },
+            {
+                "buttonPress" : {
+                    "target" : "grip-transform-node",
+                    "default" : "grip-default-transform-node",
+                    "min" : "grip-min-transform-node",
+                    "max" : "grip-max-transform-node"
                 }
             }
         ]
