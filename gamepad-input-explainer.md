@@ -44,7 +44,8 @@ FILL ME IN
         "id" : "<Gamepad object's ID>",
         "hands" : {},
         "dataSources" : [],
-        "visualResponses" : []
+        "components" : [],
+        "responses" : []
     }
 }
 ```
@@ -70,7 +71,7 @@ The description of the hands data goes HERE
 {
     "asset" : "",
     "rootId" : "<id of the model's root node in asset",
-    "components" : [],
+    "componentIds" : [],
     "primaryButton" : #,
     "primaryAxes" : #
 }
@@ -82,7 +83,8 @@ The description of the hands data goes HERE
         "dataSource" : #,
         "rootId" : "<id of component's root node in the model>",
         "labelTransformId" : "<id of the component's label transform in asset>",
-        "visualResponse" : #
+        "pressResponse" : #,
+        "touchResponse" : #
     }
 ]
 ```
@@ -112,6 +114,7 @@ The following are the default properties:
 "dataSources" : [
     {
         "button" : {
+            "id" : "",
             "supportsTouch" : true,
             "supportsPress" : true,
             "analogValues" : false,
@@ -132,6 +135,7 @@ The following are the default properties:
 "dataSources" : [
     {
         "dpad" : {
+            "id" : "",
             "supportsTouch" : false,
             "supportsPress" : true,
             "analogValues" : false,
@@ -161,6 +165,7 @@ The following are the default properties:
 "dataSources" : [
     {
         "thumbstick" : {
+            "id" : "",
             "xAxis" : {
                 "defaultValue" : 0,
                 "leftValue" : -1,
@@ -199,6 +204,7 @@ The following are the default properties:
 "dataSources" : [
     {
         "touchpad" : {
+            "id" : "",
             "xAxis" : {
                 "defaultValue" : 0,
                 "leftValue" : -1,
@@ -230,10 +236,12 @@ FILL ME IN
 ```json
 "responses" : [
     {
-        "buttonResponse" : {},
-        "dpadResponse" : {},
-        "thumbstickResponse" : {},
-        "touchpadResponse" : {}
+        "buttonPress" : {},
+        "buttonTouch" : {},
+        "dpadPress" : {},
+        "thumbstickTouch" : {},
+        "touchpadPress" : {},
+        "touchpadTouch" : {}
     }
 ]
 ```
@@ -303,433 +311,6 @@ FILL ME IN - and design me
 
 # Known XR gamepad inventory
 This section covers the mappings for all known XR controllers
-
-### Windows Mixed Reality
-```json
-"gamepad" : {
-    "name" : "045E-065D", // Windows Motion Controller
-    "hands" : {
-        "left" : {
-            "components" : [ 0, 1, 2, 3, 4],
-            "primaryButton" : 0,
-            "primaryAxes" : 1
-        },
-        "right" : {
-            "components" : [ 0, 1, 2, 3, 4],
-            "primaryButton" : 0,
-            "primaryAxes" : 1
-        }
-    },
-    "dataSources" : [
-        {
-            "name" : "trigger",
-            "button" : {
-                "gamepadButtonIndex" : 0,
-                "analogValues" : true,
-            }
-        },
-        {
-            "name" : "thumbstick",
-            "thumbstick" : {
-                "xAxis" : {
-                    "gamepadAxisIndex" : 0,
-                },
-                "yAxis" : {
-                    "gamepadAxisIndex" : 1,
-                },
-                "button" : {
-                    "gamepadButtonIndex" : 1,
-                }
-            }
-        },
-        {
-            "name" : "grip",
-            "button" : {
-                "gamepadButtonIndex" : 2
-            }
-        },
-        {
-            "name" : "touchpad",
-            "touchpad" : {
-                "xAxis" : {
-                    "gamepadAxisIndex" : 2,
-                },
-                "yAxis" : {
-                    "gamepadAxisIndex" : 3,
-                },
-                "button" : {
-                    "gamepadButtonIndex" : 3
-                }
-            }
-        },
-        {
-            "name" : "menu",
-            "button" : {
-                "gamepadButtonIndex" : 4,
-                "supportsTouch" : false,
-            }
-        },
-    ],
-    "assets" : {
-        "leftHand" : {
-            "asset" : "some uri",
-            "rootNode" : "left-controller-node"
-        },
-        "rightHand" : {
-            "asset" : "some uri",
-            "rootNode" : "right-controller-node"
-        },
-        "visualizationNodes" : [
-            {
-                "component" : 0,
-                "rootNode" : "trigger-node",
-                "labelNode" : "trigger-label-node",
-                "buttonMotion" : {
-                    "target" : "trigger-transform-node",
-                    "min" : "trigger-min-transform-node",
-                    "max" : "trigger-max-transform-node",
-                }
-            },
-            {
-                "component" : 1,
-                "rootNode" : "thumbstick-node",
-                "labelNode" : "thumbstick-label-node",
-                "thumbstickMotion" : {
-                    "target" : "thumbstick-transform-node",
-                    "left" : "thumbstick-transform-left-node",
-                    "right" : "thumbstick-right-transform-right-node",
-                    "up" : "thumbstick-transform-up-node",
-                    "down" : "thumbstick-transform-down-node",
-                    "centerMin" : "thumbstick-transform-centerMin-node",
-                    "centerMax" : "thumbstick-transform-centerMax-node",
-                }
-            },
-            {
-                "component" : 2,
-                "rootNode" : "grip-node",
-                "labelNode" : "grip-label-node",
-                "buttonMotion" : {
-                    "target" : "grip-transform-node",
-                    "min" : "grip-min-transform-node",
-                    "max" : "grip-max-transform-node",
-                }
-            },
-            {
-                "component" : 3,
-                "rootNode" : "touchpad-node",
-                "labelNode" : "touchpad-label-node",
-                "dpadMotion" : {
-                    "target" : "touchpad-transform-node",
-                    "left" : "touchpad-transform-left-node",
-                    "right" : "touchpad-transform-right-node",
-                    "up" : "touchpad-transform-up-node",
-                    "down" : "touchpad-transform-down-node",
-                    "centerMin" : "touchpad-transform-centerMin-node",
-                    "centerMax" : "touchpad-transform-centerMax-node"
-                },
-                "touchpadMotion" : {
-                    "target" : "touchpad-touchpoint-node",
-                    "left" : "touchpad-touchpoint-left-node",
-                    "right" : "touchpad-touchpoint-right-node",
-                    "up" : "touchpad-touchpoint-up-node",
-                    "down" : "touchpad-touchpoint-down-node"
-                }
-            },
-            {
-                "component" : 4,
-                "rootNode" : "menu-node",
-                "labelNode" : "menu-label-node",
-                "buttonMotion" : {
-                    "target" : "menu-transform-node",
-                    "min" : "menu-min-transform-node",
-                    "max" : "menu-max-transform-node",
-                }
-            },
-        ],
-    }
-}
-```
-
-### Oculus Go
-```json
-"gamepad" : {
-    "name" : "Oculus-Go",
-    "hands" : {
-        "left" : {
-            "components" : [0, 1, 2],
-            "primaryButton" : 0,
-            "primaryAxes" : 0
-        },
-        "right" : {
-            "components" : [0, 1, 2],
-            "primaryButton" : 0,
-            "primaryAxes" : 0
-        }
-    },
-    "dataSources" : [
-        {
-            "name" : "thumbstick",
-            "touchpad" : {
-                "xAxis" : {
-                    "gamepadAxisIndex" : 0,
-                },
-                "yAxis" : {
-                    "gamepadAxisIndex" : 1,
-                },
-                "button" : {
-                    "gamepadButtonIndex" : 0,
-                }
-            }
-        },
-        {
-            "name" : "trigger",
-            "gamepadButtonIndex" : 1,
-            "analogValues" : true,
-        },
-        {
-            "name" : "faceButton",
-            "gamepadButtonIndex" : 2,
-        },
-    ],
-    "assets" : {
-        "leftHand" : {
-            "asset" : "some uri",
-            "rootNode" : "neutral-controller-node"
-        },
-        "rightHand" : {
-            "asset" : "some uri",
-            "rootNode" : "neutral-controller-node"
-        },
-        "visualizationNodes" : [
-            {
-                "component" : 0,
-                "rootNode" : "touchpad-node",
-                "labelNode" : "touchpad-label-node",
-                "dpadMotion" : {
-                    "target" : "touchpad-transform-node",
-                    "left" : "touchpad-transform-left-node",
-                    "right" : "touchpad-transform-right-node",
-                    "up" : "touchpad-transform-up-node",
-                    "down" : "touchpad-transform-down-node",
-                    "center" : "touchpad-transform-center-node"
-                },
-                "touchpadMotion" : {
-                    "target" : "touchpad-touchpoint-node",
-                    "left" : "touchpad-touchpoint-left-node",
-                    "right" : "touchpad-touchpoint-right-node",
-                    "up" : "touchpad-touchpoint-up-node",
-                    "down" : "touchpad-touchpoint-down-node"
-                }
-            },
-            {
-                "component" : 1,
-                "rootNode" : "trigger-node",
-                "labelNode" : "trigger-label-node",
-                "buttonMotion" : {
-                    "target" : "trigger-transform-node",
-                    "min" : "trigger-min-transform-node",
-                    "max" : "trigger-max-transform-node",
-                }
-            },
-            {
-                "component" : 1,
-                "rootNode" : "faceButton-node",
-                "labelNode" : "faceButton-label-node",
-                "buttonMotion" : {
-                    "target" : "faceButton-transform-node",
-                    "min" : "faceButton-min-transform-node",
-                    "max" : "faceButton-max-transform-node",
-                }
-            },
-        ],
-    }
-}
-```
-
-### Oculus Touch
-```json
-"gamepad" : {
-    "name" : "Oculus-Touch",
-    "hands" : {
-        "left" : {
-            "components" : [0, 1, 2, 3, 4, 7],
-            "primaryButton" : 0,
-            "primaryAxes" : 1
-        },
-        "right" : {
-            "components" : [0, 1, 2, 5, 6, 7],
-            "primaryButton" : 0,
-            "primaryAxes" : 1
-        }
-    },
-    "dataSources" : [
-        {
-            "name" : "thumbstick",
-            "thumbstick" : {
-                "xAxis" : { // I don't actually see this documented anywhere?
-                    "gamepadAxisIndex" : 0,
-                    "left" : 0,
-                    "right" : 1
-                },
-                "yAxis" : {
-                    "gamepadAxisIndex" : 1,
-                    "down" : 0,
-                    "up" : 1
-                },
-                "button" : {
-                    "gamepadButtonIndex" : 0,
-                    // Is this touchable?
-                }
-            }
-        },
-        {
-            "name" : "trigger",
-            "button" : {
-                "gamepadButtonIndex" : 1,
-                "analogValues" : true,
-            }
-        },
-        {
-            "name" : "grip",
-            "button" : {
-                "gamepadButtonIndex" : 2,
-                "supportsTouch" : false,
-            }
-        },
-        {
-            "name" : "x",
-            "button" : {
-                "gamepadButtonIndex" : 3,
-                "supportsTouch" : false,
-            }
-        },
-        {
-            "name" : "y",
-            "button" : {
-                "gamepadButtonIndex" : 4,
-                "supportsTouch" : false,
-            }
-        },
-        {
-            "name" : "a",
-            "button" : {
-                "gamepadButtonIndex" : 3,
-                "supportsTouch" : false,
-            }
-        },
-        {
-            "name" : "b",
-            "button" : {
-                "gamepadButtonIndex" : 4,
-                "supportsTouch" : false,
-            }
-        },
-        { // Couldn't find this one documented anywhere
-            "name" : "thumbrest",
-            "button" : {
-                "gamepadButtonIndex" : 5,
-                "supportsPress" : false,
-            }
-        }
-    ],
-    "assets" : {
-        "leftHand" : {
-            "asset" : "some uri",
-            "rootNode" : "left-controller-node"
-        },
-        "rightHand" : {
-            "asset" : "some uri",
-            "rootNode" : "right-controller-node"
-        },
-        "visualizationNodes" : [
-            {
-                "component" : 0,
-                "rootNode" : "thumbstick-node",
-                "labelNode" : "thumbstick-label-node",
-                "thumbstickMotion" : {
-                    "target" : "thumbstick-transform-node",
-                    "left" : "thumbstick-transform-left-node",
-                    "right" : "thumbstick-right-transform-right-node",
-                    "up" : "thumbstick-transform-up-node",
-                    "down" : "thumbstick-transform-down-node",
-                    "centerMin" : "thumbstick-transform-centerMin-node",
-                    "centerMax" : "thumbstick-transform-centerMax-node",
-                }
-            },
-            {
-                "component" : 1,
-                "rootNode" : "trigger-node",
-                "labelNode" : "trigger-label-node",
-                "buttonMotion" : {
-                    "target" : "trigger-transform-node",
-                    "min" : "trigger-min-transform-node",
-                    "max" : "trigger-max-transform-node",
-                }
-            },
-            {
-                "component" : 2,
-                "rootNode" : "grip-node",
-                "labelNode" : "grip-label-node",
-                "buttonMotion" : {
-                    "target" : "grip-transform-node",
-                    "min" : "grip-min-transform-node",
-                    "max" : "grip-max-transform-node",
-                }
-            },
-            {
-                "component" : 3,
-                "rootNode" : "x-node",
-                "labelNode" : "x-label-node",
-                "buttonMotion" : {
-                    "target" : "x-transform-node",
-                    "min" : "x-min-transform-node",
-                    "max" : "x-max-transform-node",
-                }
-            },
-            {
-                "component" : 4,
-                "rootNode" : "y-node",
-                "labelNode" : "y-label-node",
-                "buttonMotion" : {
-                    "target" : "y-transform-node",
-                    "min" : "y-min-transform-node",
-                    "max" : "y-max-transform-node",
-                }
-            },
-            {
-                "component" : 5,
-                "rootNode" : "a-node",
-                "labelNode" : "a-label-node",
-                "buttonMotion" : {
-                    "target" : "a-transform-node",
-                    "min" : "a-min-transform-node",
-                    "max" : "a-max-transform-node",
-                }
-            },
-            {
-                "component" : 6,
-                "rootNode" : "b-node",
-                "labelNode" : "b-label-node",
-                "buttonMotion" : {
-                    "target" : "b-transform-node",
-                    "min" : "b-min-transform-node",
-                    "max" : "b-max-transform-node",
-                }
-            },
-            {
-                "component" : 7,
-                "rootNode" : "thumbrest-node",
-                "labelNode" : "thumbrest-label-node",
-                "buttonMotion" : {
-                    "target" : "thumbrest-touchpoint-node",
-                    "min" : "thumbrest-min-touchpoint-node",
-                    "max" : "thumbrest-max-touchpoint-node",
-                }
-            },
-        ],
-    }
-}
-```
 
 ### Gear VR
 ```json
