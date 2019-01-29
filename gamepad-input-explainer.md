@@ -31,7 +31,7 @@ FILL ME IN
 ```json
 {
     "version" : "",
-    "gamepads" : [],
+    "gamepad" : [],
     "user-agent-overrides" : []
 }
 ```
@@ -40,17 +40,12 @@ FILL ME IN
 FILL ME IN
 ```json
 {
-    "gamepads" : [
-        {
-            "<id of gamepad>" : {
-                "name" : "<friendly name of gamepad>",
-                "mapping" : "xr-standard",
-                "hands" : {},
-                "components" : [],
-                "assets" : {}
-            }
-        }
-    ]
+    "gamepad" : {
+        "id" : "<Gamepad object's ID>",
+        "hands" : {},
+        "components" : [],
+        "assets" : {}
+    }
 }
 ```
 
@@ -83,34 +78,7 @@ For motion controllers than can't distinguish right vs left
 ```
 
 ### Components
-```json
-"components" : [
-    {
-        "name" : "<friendly name>",
-        "button" : {
-
-        }
-    },
-    {
-        "name" : "<friendly name>",
-        "thumbstick" : {
-            
-        }
-    }
-    {
-        "name" : "<friendly name>",
-        "dpad" : {
-            
-        }
-    }
-    {
-        "name" : "<friendly name>",
-        "touchpad" : {
-            
-        }
-    }
-]
-```
+FILL ME IN
 
 #### Buttons
 Buttons have two styles: analog or binary.  Analog buttons report analog values in a range from `min` to `max`. If the component has `supportsTouch == true`, it MUST report `touched` for `value` > `min`, but MAY also report `touched` for `value` == `min`. Binary buttons only report one of two values. If the component has `supportsTouch == true`, it MUST report `touched` for `value` == `max`, but MAY also report `touched` for `value` == `min`. 
@@ -119,178 +87,147 @@ The `button.gamepadButtonsIndex` value must be present for the `button` to be va
 
 The following are the default properties:
 ```json
-{
-    "button" : {
-        "supportsTouch" : true,
-        "supportsPress" : true,
-        "analogValues" : false,
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
+"components" : [
+    {
+        "button" : {
+            "supportsTouch" : true,
+            "supportsPress" : true,
+            "analogValues" : false,
+            "defaultValue" : 0,
+            "min" : 0,
+            "max" : 1,
+            "gamepadButtonsIndex" : <index in gamepad's buttons array>
+        }
     }
-}
+]
 ```
 
-> **OPEN ISSUE** Should we have a "switch" style button?  Or is that a subtype of something else? buttons? dpads?
+#### Dpad
+Dpads are a switch style component.  If a left button and a right button are present, only one can be pressed at a time.  If an up button and a down button are present, only one can be pressed at the same time.
+
+The following are the default properties:
+```json
+"components" : [
+    {
+        "dpad" : {
+            "supportsTouch" : false,
+            "supportsPress" : true,
+            "analogValues" : false,
+            "defaultValue" : 0,
+            "min" : 0,
+            "max" : 1,
+            "gamepadButtonsIndices" : {
+                "left" : <index in gamepad's buttons array>,
+                "right" : <index in gamepad's buttons array>,
+                "up" : <index in gamepad's buttons array>, 
+                "down" : <index in gamepad's buttons array>
+            }
+        }
+    }
+]
+```
 
 #### Thumbsticks
 Thumbsticks always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. 
 
 The `xAxis.gamepadAxesIndex` and `yAxis.gamepadAxesIndex` values must be present for the `thumbstick` to be valid.  These values map to the indices into the matching `Gamepad`'s `axes` array.
 
-A `thumbstick` may also have a `centerButton`. If so, the `centerButton.gamepadButtonsIndex` value must be present for the `thumbstick` to be valid.  This value maps to the index into the matching `Gamepad`'s `buttons` array. Additionally if `centerButton.supportsTouch` is `true`, `touched` MUST report if either `centerButton`, `xAxis`, or `yAxis` is not the `defaultValue`. 
+A `thumbstick` may also have a `button`. If so, the `button.gamepadButtonsIndex` value must be present for the `thumbstick` to be valid.  This value maps to the index into the matching `Gamepad`'s `buttons` array. Additionally if `button.supportsTouch` is changed to `true`, the button's `touched` MUST report if either `button`, `xAxis`, or `yAxis` is not the `defaultValue`. 
 
 The following are the default properties:
 ```json
-{
-    "thumbstick" : {
-        "xAxis" : {
-            "defaultValue" : 0,
-            "leftValue" : -1,
-            "rightValue" : 1,
-        },
-        "yAxis" : {
-            "defaultValue" : 0,
-            "upValue" : -1,
-            "downValue" : 1,
-        },
-        "centerButton" : {
-            "supportsTouch" : false,
-            "defaultValue" : 0,
-            "min" : 0,
-            "max" : 1,
+"components" : [
+    {
+        "thumbstick" : {
+            "xAxis" : {
+                "defaultValue" : 0,
+                "leftValue" : -1,
+                "rightValue" : 1,
+                "gamepadAxesIndex" : <index in gamepad's axes array>
+            },
+            "yAxis" : {
+                "defaultValue" : 0,
+                "upValue" : -1,
+                "downValue" : 1,
+                "gamepadAxesIndex" : <index in gamepad's axes array>
+            },
+            "button" : {
+                "supportsTouch" : false,
+                "supportsPress" : true,
+                "analogValues" : false,
+                "defaultValue" : 0,
+                "min" : 0,
+                "max" : 1,
+                "gamepadButtonsIndex" : <index in gamepad's buttons array>
+            }
         }
     }
-}
+]
 ```
 
-#### Dpad
-Dpads are a switch style component.  If a `leftButton` and a `rightButton` are present, only one can be pressed at a time.  If a `upButton` and a `downButton` are present, only one can be pressed at the same time.  If a `centerButton` is present, it cannot be pressed at the same time as any of the other buttons.
+#### Touchpad
+Touchpads always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. 
 
-If the `leftButton`, `rightButton`, `upButton`, `downButton`, or `centerButton` are present, their `gamepadButtonsIndex` values must be present for the `dpad` to be valid.  These values map to the indices into the matching `Gamepad`'s `buttons` array.
+The `xAxis.gamepadAxesIndex` and `yAxis.gamepadAxesIndex` values must be present for the `touchpad` to be valid.  These values map to the indices into the matching `Gamepad`'s `axes` array.
+
+A `touchpad` may also have a `button`. If so, the `button` must be valid for the `touchpad` to be valid.  Additionally if `button.supportsTouch` is set to `true`, the `touched` attribute of the `button` MUST be `true` if `x` or `y` are not their default values.
 
 The following are the default properties:
 ```json
-"dpad" : {
-    "supportsTouch" : false,
-    "leftButton" : {
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
-    },
-    "rightButton" : {
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
-    },
-    "upButton" : {
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
-    },
-    "downButton" : {
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
-    },
-    "centerButton" : {
-        "defaultValue" : 0,
-        "min" : 0,
-        "max" : 1,
-    }
-}
-```
-
-#### Trackpads
-Trackpads always report values in a range such that `x` is between `xAxis.leftValue` and `xAxis.rightValue` and such that `y` is between `yAxis.downValue` and `yAxis.upValue`.  There is no guarantee that `xAxis.leftValue` is less than `xAxis.rightValue`, but the values will not be equal.  There is no guarantee that `yAxis.downValue` is less than `yAxis.upValue`, but the values will not be equal. 
-
-The `xAxis.gamepadAxesIndex` and `yAxis.gamepadAxesIndex` values must be present for the `trackpad` to be valid.  These values map to the indices into the matching `Gamepad`'s `axes` array.
-
-A `trackpad` may also have a `dpad`. If so, the `dpad` be valid for the `trackpad` to be valid.  Additionally if `dpad.supportsTouch` is `true`, the `touched` attribute of the `leftButton`, `rightButton`, `upButton`, `downButton`, and `centerButton` MUST be `true` if a press at the current `x` and `y` position would cause the button to be pressed. 
-
-The following are the default properties:
-```json
-"trackpad" : {
-    "xAxis" : {
-        "defaultValue" : 0,
-        "leftValue" : -1,
-        "rightValue" : 1,
-    },
-    "yAxis" : {
-        "defaultValue" : 0,
-        "upValue" : -1,
-        "downValue" : 1,
-    },
-    "dpad" : {
-        "supportsTouch" : true,
-        "leftButton" : {
-        },
-        "rightButton" : {
-        },
-        "upButton" : {
-        },
-        "downButton" : {
-        },
-        "centerButton" : {
+"components" : [
+    {
+        "trackpad" : {
+            "xAxis" : {
+                "defaultValue" : 0,
+                "leftValue" : -1,
+                "rightValue" : 1,
+                "gamepadAxesIndex" : <index in gamepad's axes array>
+            },
+            "yAxis" : {
+                "defaultValue" : 0,
+                "upValue" : -1,
+                "downValue" : 1,
+                "gamepadAxesIndex" : <index in gamepad's axes array>
+            },
+            "button" : {
+                "supportsTouch" : false,
+                "supportsPress" : true,
+                "analogValues" : false,
+                "defaultValue" : 0,
+                "min" : 0,
+                "max" : 1,
+                "gamepadButtonsIndex" : <index in gamepad's buttons array>
+            }
         }
     }
-}
+]
 ```
 ### Assets
 FILL ME IN
 Note that for this section, the two rootNodes could also be the same
 ```json
 "assets" : {
-    "leftHand" : {
-        "asset" : "some uri",
-        "rootNode" : "left-controller-node"
+    "hands" : {
+        "left" : {},
+        "right" : {},
+        "neutral" : {}
     },
-    "rightHand" : {
-        "asset" : "some uri",
-        "rootNode" : "right-controller-node"
-    },
-    "visualizationNodes" : []
+    "mappings" : [],
+    "motions" : []
 }
 ```
 OR
 
 ```json
-"assets" : {
-    "neutralHand" : {
-        "asset" : "some uri",
-        "rootNode" : "node in the asset to go at gripSpace origin"
-    },
-    "visualizationNodes" : [
+"hand" : {
+    "asset" : "",
+    "rootId" : "<id of the model's root node in asset",
+    "components" : [
         {
-            "component" : #,
-            "rootNode" : "<node in the asset of the component's root>",
-            "labelNode" : "<node in the asset to place a usage label>",
-            "buttonMotion" : {}
-        },
-        {
-            "component" : #,
-            "rootNode" : "<node in the asset of the component's root>",
-            "labelNode" : "<node in the asset to place a usage label>",
-            "thumbstickMotion" : {}
-        },
-        {
-            "component" : #,
-            "rootNode" : "<node in the asset of the component's root>",
-            "labelNode" : "<node in the asset to place a usage label>",
-            "dpadMotion" : {}
-        },
-        {
-            "component" : #,
-            "rootNode" : "<node in the asset of the component's root>",
-            "labelNode" : "<node in the asset to place a usage label>",
-            "touchpadMotion" : {}
-        },
-        {
-            "component" : #,
-            "rootNode" : "<node in the asset of the component's root>",
-            "labelNode" : "<node in the asset to place a usage label>",
-            "dpadMotion" : {},
-            "touchpadMotion" : {}
+            "componentId" : #,
+            "rootId" : "<id of the component's root node in asset>",
+            "labelTransformId" : "<id of the component's label transform in asset>",
+            "motion" : #
         }
     ]
 }
@@ -298,6 +235,39 @@ OR
 
 #### Motion types
 FILL ME IN
+```json
+"motions" : [
+    {
+        "buttonMotion" : {},
+        "dpadMotion" : {},
+        "thumbstickMotion" : {},
+        "touchpadMotion" : {}
+    }
+]
+```
+
+FILL ME IN
+```json
+"buttonMotion" : {
+    "target" : "<button transform id>"
+
+}
+```
+
+FILL ME IN
+```json
+"dpadMotion" : {}
+```
+
+FILL ME IN
+```json
+"thumbstickMotion" : {}
+```
+
+FILL ME IN
+```json
+"touchpadMotion" : {}
+```
 
 ## User-agent overrides
 FILL ME IN - and design me
@@ -307,9 +277,8 @@ This section covers the mappings for all known XR controllers
 
 ### Windows Mixed Reality
 ```json
-"045E-065D" : {
-    "name" : "Windows Motion Controller",
-    "mapping" : "xr-standard",
+"gamepad" : {
+    "name" : "045E-065D", // Windows Motion Controller
     "hands" : {
         "left" : {
             "components" : [ 0, 1, 2, 3, 4],
@@ -339,7 +308,7 @@ This section covers the mappings for all known XR controllers
                 "yAxis" : {
                     "gamepadAxisIndex" : 1,
                 },
-                "centerButton" : {
+                "button" : {
                     "gamepadButtonIndex" : 1,
                 }
             }
@@ -359,10 +328,8 @@ This section covers the mappings for all known XR controllers
                 "yAxis" : {
                     "gamepadAxisIndex" : 3,
                 },
-                "dpad" : {
-                    "centerButton" : {
-                        "gamepadButtonIndex" : 3
-                    }
+                "button" : {
+                    "gamepadButtonIndex" : 3
                 }
             }
         },
@@ -456,9 +423,8 @@ This section covers the mappings for all known XR controllers
 
 ### Oculus Go
 ```json
-"OculusGo" : {
-    "name" : "Oculus Go",
-    "mapping" : "xr-standard",
+"gamepad" : {
+    "name" : "Oculus-Go",
     "hands" : {
         "left" : {
             "components" : [0, 1, 2],
@@ -481,22 +447,8 @@ This section covers the mappings for all known XR controllers
                 "yAxis" : {
                     "gamepadAxisIndex" : 1,
                 },
-                "dpad" : {
-                    "leftButton" : {
-                        "gamepadButtonIndex" : 3,
-                    },
-                    "rightButton" : {
-                        "gamepadButtonIndex" : 4,
-                    },
-                    "downButton" : {
-                        "gamepadButtonIndex" : 5,
-                    },
-                    "upButton" : {
-                        "gamepadButtonIndex" : 6,
-                    },
-                    "centerButton" : {
-                        "gamepadButtonIndex" : 0,
-                    }
+                "button" : {
+                    "gamepadButtonIndex" : 0,
                 }
             }
         },
@@ -567,9 +519,8 @@ This section covers the mappings for all known XR controllers
 
 ### Oculus Touch
 ```json
-"OculusTouch" : {
-    "name" : "Oculus Touch",
-    "mapping" : "xr-standard",
+"gamepad" : {
+    "name" : "Oculus-Touch",
     "hands" : {
         "left" : {
             "components" : [0, 1, 2, 3, 4, 7],
@@ -596,7 +547,7 @@ This section covers the mappings for all known XR controllers
                     "down" : 0,
                     "up" : 1
                 },
-                "centerButton" : {
+                "button" : {
                     "gamepadButtonIndex" : 0,
                     // Is this touchable?
                 }
@@ -753,9 +704,8 @@ This section covers the mappings for all known XR controllers
 
 ### Gear VR
 ```json
-"GearVR" : {
-    "name" : "Gear VR",
-    "mapping" : "xr-standard",
+"gamepad" : {
+    "name" : "Gear-VR",
     "hands" : {
         "neutral" : {
             "components" : [0, 1, 2],
@@ -773,22 +723,8 @@ This section covers the mappings for all known XR controllers
                 "yAxis" : {
                     "gamepadAxisIndex" : 1,
                 },
-                "dpad" : {
-                    "leftButton" : {
-                        "gamepadButtonIndex" : 3,
-                    },
-                    "rightButton" : {
-                        "gamepadButtonIndex" : 4,
-                    },
-                    "downButton" : {
-                        "gamepadButtonIndex" : 5,
-                    },
-                    "upButton" : {
-                        "gamepadButtonIndex" : 6,
-                    },
-                    "centerButton" : {
-                        "gamepadButtonIndex" : 0,
-                    }
+                "button" : {
+                    "gamepadButtonIndex" : 0,
                 }
             }
         },
@@ -842,9 +778,8 @@ This section covers the mappings for all known XR controllers
 
 ### HTC Vive
 ```json
-"HTCViveController" : {
-    "name" : "HTC Vive Controller",
-    "mapping" : "xr-standard",
+"gamepad" : {
+    "id" : "HTC-Vive-Controller",
     "hands" : {
         "neutral" : {
             "components" : [ 0, 1, 2],
@@ -862,22 +797,8 @@ This section covers the mappings for all known XR controllers
                 "yAxis" : {
                     "gamepadAxisIndex" : 1,
                 },
-                "dpad" : {
-                    "leftButton" : {
-                        "gamepadButtonIndex" : 3,
-                    },
-                    "rightButton" : {
-                        "gamepadButtonIndex" : 4,
-                    },
-                    "downButton" : {
-                        "gamepadButtonIndex" : 5,
-                    },
-                    "upButton" : {
-                        "gamepadButtonIndex" : 6,
-                    },
-                    "centerButton" : {
-                        "gamepadButtonIndex" : 0,
-                    }
+                "button" : {
+                    "gamepadButtonIndex" : 0,
                 }
             }
         },
@@ -946,9 +867,8 @@ This section covers the mappings for all known XR controllers
 
 ### Valve Knuckles
 ```json
-"Knuckles" : {
-    "name" : "Valve Knuckles Controller",
-    "mapping" : "xr-standard",
+"gamepad" : {
+    "id" : "Knuckles",
     "hands" : {
         "left" : {
             "components" : [0, 1, 2, 3],
@@ -971,10 +891,8 @@ This section covers the mappings for all known XR controllers
                 "yAxis" : {
                     "gamepadAxisIndex" : 1,
                 },
-                "dpad" : {
-                    "centerButton" : {
-                        "gamepadButtonIndex" : 0,
-                    }
+                "centerButton" : {
+                    "gamepadButtonIndex" : 0,
                 }
             }
         },
