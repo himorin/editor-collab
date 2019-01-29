@@ -76,6 +76,7 @@ The description of the hands data goes HERE
     "primaryAxes" : #
 }
 ```
+
 #### Components
 ```json
 "components" : [
@@ -309,139 +310,15 @@ FILL ME IN
 ## User-agent overrides
 FILL ME IN - and design me
 
-# Known XR gamepad inventory
-This section covers the mappings for all known XR controllers
+# Appendices
 
-### Valve Knuckles
-```json
-"gamepad" : {
-    "id" : "Knuckles",
-    "hands" : {
-        "left" : {
-            "components" : [0, 1, 2, 3],
-            "primaryButton" : 0,
-            "primaryAxes" : 0
-        },
-        "right" : {
-            "components" : [0, 1, 2, 3],
-            "primaryButton" : 0,
-            "primaryAxes" : 0
-        }
-    },
-    "dataSources" : [
-        {
-            "name" : "trackpad",
-            "touchpad" : {
-                "xAxis" : {
-                    "gamepadAxisIndex" : 0,
-                },
-                "yAxis" : {
-                    "gamepadAxisIndex" : 1,
-                },
-                "centerButton" : {
-                    "gamepadButtonIndex" : 0,
-                }
-            }
-        },
-        {
-            "name" : "trigger",
-            "button" : {
-                "gamepadButtonIndex" : 1,
-                "analogValues" : true,
-            }
-        },
-        {
-            "name" : "innerFaceButton",
-            "gamepadButtonIndex" : 2,
-            "supportsTouch" : false
-        },
-        {
-            "name" : "outerFaceButton",
-            "gamepadButtonIndex" : 3,
-            "supportsTouch" : false
-        }
-    ],
-    "assets" : {
-        "leftHand" : {
-            "asset" : "some uri",
-            "rootNode" : "left-controller-node"
-        },
-        "rightHand" : {
-            "asset" : "some uri",
-            "rootNode" : "right-controller-node"
-        },
-        "visualizationNodes" : [
-            {
-                "component" : 0,
-                "rootNode" : "touchpad-node",
-                "labelNode" : "touchpad-label-node",
-                "dpadMotion" : {
-                    "target" : "touchpad-transform-node",
-                    "centerMin" : "touchpad-transform-centerMin-node",
-                    "centerMax" : "touchpad-transform-centerMax-node"
-                },
-                "touchpadMotion" : {
-                    "target" : "touchpad-touchpoint-node",
-                    "left" : "touchpad-touchpoint-left-node",
-                    "right" : "touchpad-touchpoint-right-node",
-                    "up" : "touchpad-touchpoint-up-node",
-                    "down" : "touchpad-touchpoint-down-node"
-                }
-            },
-            {
-                "component" : 1,
-                "rootNode" : "trigger-node",
-                "labelNode" : "trigger-label-node",
-                "buttonMotion" : {
-                    "target" : "trigger-transform-node",
-                    "min" : "trigger-min-transform-node",
-                    "max" : "trigger-max-transform-node",
-                }
-            },
-            {
-                "component" : 2,
-                "rootNode" : "innerFaceButton-node",
-                "labelNode" : "innerFaceButton-label-node",
-                "buttonMotion" : {
-                    "target" : "innerFaceButton-transform-node",
-                    "min" : "innerFaceButton-min-transform-node",
-                    "max" : "innerFaceButton-max-transform-node",
-                }
-            },
-            {
-                "component" : 3,
-                "rootNode" : "outerFaceButton-node",
-                "labelNode" : "outerFaceButton-label-node",
-                "buttonMotion" : {
-                    "target" : "outerFaceButton-transform-node",
-                    "min" : "outerFaceButton-min-transform-node",
-                    "max" : "outerFaceButton-max-transform-node",
-                }
-            }
-        ],
-    }
-}
-```
-
-### Vive Focus
-FILL ME IN
-
-### Magic Leap
-FILL ME IN
-
-### Daydream
-FILL ME IN
-
-### Mirage Solo
-FILL ME IN
-
-### HoloLens Clicker
-Should this be included?  
-
-### Oculus Remote
-Should this be included?  
-
-## Appendices
+### Additional Hardware
+* Vive Focus
+* Magic Leap
+* Daydream
+* Mirage Solo
+* HoloLens Clicker (Should this be included?)
+* Oculus Remote (Should this be included?)
 
 ### References
 * [GitHub - stewdio/THREE.VRController: Support hand controllers for Oculus, Vive, Windows Mixed Reality, Daydream, GearVR, and more by adding VRController to your existing Three.js-based WebVR project.](https://github.com/stewdio/THREE.VRController)
